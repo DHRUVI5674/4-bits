@@ -53,6 +53,18 @@ router.get('/:code/character/:playerId',
   gameController.getCharacter
 );
 
+router.get('/:code/session', 
+  gameValidator.roomIdValidator, 
+  validate, 
+  gameController.getGameSession
+);
+
+router.get('/:code/session/character/:playerId', 
+  gameValidator.playerIdValidator, 
+  validate, 
+  gameController.getGameSessionCharacter
+);
+
 router.delete('/:code', 
   gameValidator.hostActionValidator, 
   validate, 

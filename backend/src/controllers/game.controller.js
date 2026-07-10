@@ -69,8 +69,12 @@ export const toggleReady = async (req, res, next) => {
 export const startGame = async (req, res, next) => {
   try {
     const { hostId } = req.body;
-    const game = await gameService.startGame(req.params.code.toUpperCase(), hostId);
-    successResponse(res, game, 'Game started successfully');
+    const result = await gameService.startGame(req.params.code.toUpperCase(), hostId);
+    successResponse(res, {
+      game: result.game,
+      session: result.session,
+      playerAssignments: result.playerAssignments,
+    }, 'Game started successfully');
   } catch (error) {
     next(error);
   }
@@ -80,6 +84,25 @@ export const getCharacter = async (req, res, next) => {
   try {
     const { code, playerId } = req.params;
     const character = await gameService.getPlayerCharacter(code.toUpperCase(), playerId);
+    successResponse(res, character);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getGameSession = async (req, res, next) => {
+  try {
+    const session = await gameService.getGameSession(req.params.code.toUpperCase());
+    successResponse(res, session);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getGameSessionCharacter = async (req, res, next) => {
+  try {
+    const { code, playerId } = req.params;
+    const character = await gameService.getPlayerGameCharacter(code.toUpperCase(), playerId);
     successResponse(res, character);
   } catch (error) {
     next(error);

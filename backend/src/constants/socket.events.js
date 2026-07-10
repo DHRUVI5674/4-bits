@@ -1,10 +1,4 @@
-/**
- * @file socket.events.js
- * @description Centralized Socket.IO event names.
- */
-
 export const SOCKET_EVENTS = {
-  // Client -> Server
   CONNECTION: 'connection',
   JOIN_ROOM: 'join-room',
   LEAVE_ROOM: 'leave-room',
@@ -14,7 +8,6 @@ export const SOCKET_EVENTS = {
   RECONNECT_PLAYER: 'reconnect-player',
   DISCONNECT: 'disconnect',
 
-  // Server -> Client
   JOIN_SUCCESS: 'join-success',
   ROOM_UPDATED: 'room-updated',
   PLAYER_JOINED: 'player-joined',
@@ -26,6 +19,14 @@ export const SOCKET_EVENTS = {
   PLAYER_DISCONNECTED: 'player-disconnected',
   HEARTBEAT_ACK: 'heartbeat-ack',
   ERROR: 'error',
+
+  GAME_INITIALIZED: 'game-initialized',
+  GAME_SETUP_COMPLETE: 'game-setup-complete',
+  STORY_GENERATED: 'story-generated',
+  CHARACTERS_GENERATED: 'characters-generated',
+  EVIDENCE_GENERATED: 'evidence-generated',
+  TIMELINE_GENERATED: 'timeline-generated',
+  CHARACTER_ASSIGNED: 'character-assigned',
 };
 
 export const ERROR_CODES = {
@@ -39,4 +40,6 @@ export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   INVALID_PAYLOAD: 'INVALID_PAYLOAD',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
+  SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
+  GAME_NOT_INITIALIZED: 'GAME_NOT_INITIALIZED',
 };

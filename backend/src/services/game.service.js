@@ -3,6 +3,7 @@ import gameRepository from '../repositories/game.repository.js';
 import AppError from '../utils/appError.js';
 import { nanoid } from 'nanoid';
 import { GAME_STATUS, GAME_PHASE } from '../constants/game.constants.js';
+import gameEngine from '../gameEngine/index.js';
 
 /**
  * @file game.service.js
@@ -136,11 +137,60 @@ export const startGame = async (roomCode, hostId) => {
     throw new AppError('All players must be ready to start', 400);
   }
 
+  if (game.sessionId) {
+    throw new AppError('Game has already been initialized', 400);
+  }
+
+  const { session, playerAssignments } = await gameEngine.initializeGame(
+    roomCode,
+    game.players
+  );
+
   game.status = GAME_STATUS.STARTED;
-  game.gameState.phase = GAME_PHASE.INVESTIGATION;
-  
+  game.gameState.phase = GAME_PHASE.SETUP;
+  game.sessionId = session.gameId;
+
   await gameRepository.save(game);
-  return game;
+
+  return {
+    game,
+    session: {
+      gameId: session.gameId,
+      phase: session.phase,
+      theme: session.theme,
+      location: session.location,
+      victim: session.victim,
+      murderer: session.murderer,
+      murderWeapon: session.murderWeapon,
+      causeOfDeath: session.causeOfDeath,
+      timeOfDeath: session.timeOfDeath,
+      suspectCount: session.suspects.length,
+      characterCount: session.characters.length,
+    },
+    playerAssignments,
+  };
+};
+
+export const getGameSession = async (roomCode) => {
+  const game = await gameRepository.findByCode(roomCode);
+  if (!game) {
+    throw new AppError('Game not found', 404);
+  }
+  if (!game.sessionId) {
+    throw new AppError('Game session has not been initialized', 400);
+  }
+  return gameEngine.getGameSession(roomCode);
+};
+
+export const getPlayerGameCharacter = async (roomCode, playerId) => {
+  const game = await gameRepository.findByCode(roomCode);
+  if (!game) {
+    throw new AppError('Game not found', 404);
+  }
+  if (!game.sessionId) {
+    throw new AppError('Game has not started yet', 400);
+  }
+  return gameEngine.getPlayerCharacter(roomCode, playerId);
 };
 
 export const updatePresence = async (roomCode, playerId, socketId, isConnected) => {

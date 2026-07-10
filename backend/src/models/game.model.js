@@ -95,10 +95,14 @@ const gameSchema = new mongoose.Schema({
       clues: [Object]
     }
   },
+  sessionId: {
+    type: String,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 86400, // Automatically delete game after 24 hours
+    expires: 86400,
   },
 }, { timestamps: true });
 
