@@ -1,11 +1,10 @@
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api/games";
+import { API_BASE } from "./api";
 
 let sessionCache = {};
-let logsCache = {};
 
-async function fetchSession(roomCode) {
+async function fetchSession(roomCode, force = false) {
   const code = roomCode.toUpperCase();
-  if (sessionCache[code]) return sessionCache[code];
+  if (sessionCache[code] && !force) return sessionCache[code];
   const response = await fetch(`${API_BASE}/${code}/session`);
   if (!response.ok) throw new Error("Failed to fetch session");
   const data = await response.json();
@@ -26,31 +25,28 @@ export const getSuspects = async (roomCode) => {
     }));
 };
 
+export const getSessionDetails = async (roomCode, force = false) => {
+  const session = await fetchSession(roomCode, force);
+  return session;
+};
+
 export const getInvestigationLog = async (roomCode) => {
   const code = roomCode.toUpperCase();
-  if (logsCache[code]) return logsCache[code];
-
-  const session = await fetchSession(roomCode);
-  const startText = `The rain lashes against the windowpanes at the ${session.location}. A body lies cold on the floor: the victim is ${session.victim}, who met their end via "${session.causeOfDeath.toLowerCase()}" around ${session.timeOfDeath}. The suspects gathered here are: ${session.suspects.join(", ")}. You must investigate the room, inspect the evidence, and coordinate with each other to solve the mystery before the authorities arrive.`;
-
-  logsCache[code] = [
-    {
-      id: "msg-start",
-      type: "ai",
-      author: "Game Master",
-      text: startText
-    }
-  ];
-  return logsCache[code];
+  const response = await fetch(`${API_BASE}/${code}/logs`);
+  if (!response.ok) throw new Error("Failed to fetch logs");
+  const data = await response.json();
+  return data.data.logs;
 };
 
 export const getDiscoveredClues = async (roomCode) => {
-  const session = await fetchSession(roomCode);
-  return (session.evidence || []).map(e => ({
-    id: e.evidenceId,
-    title: e.name,
-    description: `${e.description} (Discovered at: ${e.location || 'Unknown'})`
-  }));
+  const session = await fetchSession(roomCode, true); // Always force fresh clues list
+  return (session.evidence || [])
+    .filter(e => e.discovered)
+    .map(e => ({
+      id: e.evidenceId,
+      title: e.name,
+      description: `${e.type || 'Evidence'} · ${e.description} (Location: ${e.location})`
+    }));
 };
 
 export const getActivePlayers = async (roomCode) => {
@@ -67,48 +63,41 @@ export const getActivePlayers = async (roomCode) => {
 
 export const submitAction = async (roomCode, playerId, actionPayload) => {
   const code = roomCode.toUpperCase();
-  const session = await fetchSession(roomCode);
-  
-  const myChar = session.characters.find(c => c.playerId === playerId);
-  const authorName = myChar ? myChar.name : "Investigator";
-
-  let responseText = "";
-  
-  switch(actionPayload.type) {
-    case "ask":
-      responseText = `You ask ${actionPayload.target} about "${actionPayload.content}". They shift uncomfortably. "I have nothing to hide," they say, though their eyes dart around the room.`;
-      break;
-    case "request":
-      responseText = `You request details about "${actionPayload.content}" from ${actionPayload.target}. They respond flatly, "That's personal business. Let the police handle it."`;
-      break;
-    case "inspect":
-      responseText = `You inspect the ${actionPayload.target}. Your examination reveals details consistent with a struggle, but no immediate breakthroughs.`;
-      break;
-    case "accuse":
-      responseText = `You point an accusing finger at ${actionPayload.target}! "${actionPayload.content}!" The room is silent for a tense moment. ${actionPayload.target} gasps, "How dare you make such baseless claims without definitive proof!"`;
-      break;
-    default:
-      responseText = "Action noted by the Game Master.";
+  const response = await fetch(`${API_BASE}/${code}/action`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      playerId,
+      type: actionPayload.type,
+      target: actionPayload.target,
+      content: actionPayload.content
+    })
+  });
+  if (!response.ok) {
+    throw new Error("Failed to submit action");
   }
+  const data = await response.json();
+  return { success: true, newEntries: data.data.newEntries };
+};
 
-  const actionEntry = {
-    id: `msg-${Date.now()}-a`,
-    type: "player",
-    author: authorName,
-    text: `[${actionPayload.type.toUpperCase()}] ${actionPayload.target ? '-> ' + actionPayload.target : ''} ${actionPayload.content || ''}`
-  };
+export const startVoting = async (roomCode, playerId) => {
+  const code = roomCode.toUpperCase();
+  const response = await fetch(`${API_BASE}/${code}/start-vote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerId })
+  });
+  if (!response.ok) throw new Error("Failed to start voting");
+  return response.json();
+};
 
-  const aiEntry = {
-    id: `msg-${Date.now()}-b`,
-    type: "ai",
-    author: "Game Master",
-    text: responseText
-  };
-
-  if (!logsCache[code]) {
-    await getInvestigationLog(roomCode);
-  }
-  logsCache[code].push(actionEntry, aiEntry);
-
-  return { success: true, newEntries: [actionEntry, aiEntry] };
+export const submitVote = async (roomCode, playerId, suspectName) => {
+  const code = roomCode.toUpperCase();
+  const response = await fetch(`${API_BASE}/${code}/vote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerId, suspectName })
+  });
+  if (!response.ok) throw new Error("Failed to submit vote");
+  return response.json();
 };
