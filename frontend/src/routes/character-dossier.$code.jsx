@@ -72,6 +72,15 @@ function CharacterDossier() {
 
   const { identity, background, secret, objective, relationships } = character;
 
+  const getSpritePath = (occupation = "") => {
+    const occ = occupation.toLowerCase();
+    if (occ.includes("conductor") || occ.includes("orchestra") || occ.includes("music")) return "/sprites/conductor.png";
+    if (occ.includes("doctor") || occ.includes("medical")) return "/sprites/doctor.png";
+    if (occ.includes("heir") || occ.includes("aristocrat") || occ.includes("wealthy") || occ.includes("disinherited")) return "/sprites/heir.png";
+    if (occ.includes("steward") || occ.includes("butler") || occ.includes("servant") || occ.includes("secretary")) return "/sprites/steward.png";
+    return "/sprites/detective.png";
+  };
+
   return (
     <main className="min-h-screen bg-[color:var(--color-bg-base)] px-4 py-8 md:px-6 md:py-16">
       <div className="mx-auto max-w-2xl tw-animate-in tw-fade-in tw-slide-in-from-bottom-4 tw-duration-1000 @media(prefers-reduced-motion):tw-animate-none">
@@ -95,8 +104,12 @@ function CharacterDossier() {
             backgroundColor: "var(--color-bg-elevated)",
             borderColor: "var(--color-border-hairline-strong)"
           }}>
-            <div className="w-24 h-32 bg-[color:var(--color-bg-base)] border border-[color:var(--color-border-hairline)] flex items-center justify-center shrink-0">
-              <span className="text-[color:var(--color-text-tertiary)] text-xs tracked-caps">Photo</span>
+            <div className="w-24 h-24 rounded-full bg-[color:var(--color-bg-base)] border border-[color:var(--color-border-hairline)] flex items-center justify-center shrink-0 overflow-hidden shadow-lg">
+              <img 
+                src={getSpritePath(identity.occupation || identity.role)} 
+                alt="Sprite Avatar" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <span className="tracked-caps text-[10px] text-[color:var(--color-text-tertiary)]">Identity</span>

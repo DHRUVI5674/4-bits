@@ -37,8 +37,13 @@ const gameHandler = (io, socket) => {
     }
   };
 
+  const handlePlayerMoved = (data) => {
+    socket.to(roomCode).emit('player-moved', data);
+  };
+
   socket.on('get-session', handleGetSession);
   socket.on('get-my-character', handleGetMyCharacter);
+  socket.on('player-moved', handlePlayerMoved);
 };
 
 export default gameHandler;
