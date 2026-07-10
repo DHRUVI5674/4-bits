@@ -66,6 +66,22 @@ const characterSchema = new mongoose.Schema({
   relationships: [relationshipSchema],
   isMurderer: { type: Boolean, default: false },
   isVictim: { type: Boolean, default: false },
+  suspicionScore: { type: Number, default: 0 },
+}, { _id: false });
+
+const logMessageSchema = new mongoose.Schema({
+  messageId: { type: String, default: () => nanoid(10) },
+  type: { type: String, enum: ['player', 'ai'], required: true },
+  author: { type: String, required: true },
+  text: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+}, { _id: false });
+
+const voteSchema = new mongoose.Schema({
+  playerId: { type: String, required: true },
+  playerName: { type: String, required: true },
+  suspectName: { type: String, required: true },
+  votedAt: { type: Date, default: Date.now }
 }, { _id: false });
 
 const gameSessionSchema = new mongoose.Schema({
@@ -106,6 +122,9 @@ const gameSessionSchema = new mongoose.Schema({
   evidence: [evidenceSchema],
   timeline: [timelineEventSchema],
   relationships: [relationshipSchema],
+  logs: [logMessageSchema],
+  votes: [voteSchema],
+  finalReveal: { type: String, default: '' },
 
   solution: {
     murdererId: { type: String, required: true },
