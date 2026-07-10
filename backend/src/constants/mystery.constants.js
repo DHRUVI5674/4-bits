@@ -1,0 +1,182 @@
+export const MYSTERY_THEMES = {
+  MANSION: {
+    name: 'Mansion',
+    victimTitle: 'Lord',
+    victimSurname: 'Blackwood',
+    locationPrefix: 'The',
+  },
+};
+
+export const VICTIM_ARCHETYPES = [
+  { name: 'Archibald', surname: 'Blackwood', description: 'The ruthless patriarch of the Blackwood family', background: 'A wealthy industrialist who made his fortune through questionable means. Known for his temper and his many enemies.' },
+  { name: 'Victoria', surname: 'Ashford', description: 'The elegant socialite with a dark past', background: 'A prominent figure in high society who knew everyone\'s secrets. Her charm hid a manipulative nature.' },
+  { name: 'Professor', surname: 'Mortimer', description: 'The brilliant but secretive academic', background: 'A renowned archaeologist who recently returned from an expedition with a mysterious artifact. He was on the verge of a discovery that could ruin powerful people.' },
+  { name: 'Captain', surname: 'Sterling', description: 'The decorated military officer turned businessman', background: 'A war hero whose company was on the verge of bankruptcy. He had made deals with dangerous people to stay afloat.' },
+  { name: 'Madame', surname: 'Lacroix', description: 'The enigmatic art collector', background: 'A mysterious figure who emerged from obscurity with a fortune in art. Whispers suggest the collection was not legitimately acquired.' },
+];
+
+export const CHARACTER_ARCHETYPES = [
+  {
+    name: 'Eleanor',
+    surname: 'Blackwood',
+    age: 45,
+    occupation: 'Estate Manager',
+    personality: ['Methodical', 'Stern', 'Loyal', 'Secretive'],
+    background: 'The victim\'s trusted advisor who has run the estate for decades. Knows where all the bodies are buried — literally.',
+    relationshipToVictim: 'Personal assistant and confidant for 20 years',
+    possibleMotives: ['Was being blackmailed by the victim', 'Discovered the victim was ruining the family', 'Wanted to protect someone from the victim'],
+    secretInfo: 'Has a secret child the victim threatened to expose',
+  },
+  {
+    name: 'Marcus',
+    surname: 'Delacroix',
+    age: 32,
+    occupation: 'Jewelry Designer',
+    personality: ['Charismatic', 'Charming', 'Reckless', 'Ambitious'],
+    background: 'A rising star in the fashion world who married into wealth. Lives beyond his means.',
+    relationshipToVictim: 'Son-in-law, married to the victim\'s daughter',
+    possibleMotives: ['Deep in debt to dangerous people', 'Having an affair that the victim discovered', 'Wanted the inheritance before the victim could cut ties'],
+    secretInfo: 'Has been stealing from the family business to pay gambling debts',
+  },
+  {
+    name: 'Isabella',
+    surname: 'Blackwood',
+    age: 28,
+    occupation: 'Museum Curator',
+    personality: ['Intelligent', 'Reserved', 'Observant', 'Guilty'],
+    background: 'The victim\'s estranged daughter who returned home after years abroad. Changed by her experiences.',
+    relationshipToVictim: 'Daughter, estranged for 5 years',
+    possibleMotives: ['Blamed the victim for her mother\'s death', 'Needed money for a secret project', 'Was about to be disowned'],
+    secretInfo: 'Discovered the victim had her mother killed',
+  },
+  {
+    name: 'Dr. James',
+    surname: 'Westbrook',
+    age: 55,
+    occupation: 'Family Physician',
+    personality: ['Calm', 'Professional', 'Curious', 'Compassionate'],
+    background: 'The family doctor who has attended to the Blackwood family for three generations. Knows their medical secrets.',
+    relationshipToVictim: 'Personal physician and longtime family friend',
+    possibleMotives: ['The victim refused to fund his medical research', 'Knew about a misdiagnosis that led to someone\'s death', 'Was being pressured to prescribe dangerous medications'],
+    secretInfo: 'The victim was slowly poisoning someone and the doctor knew',
+  },
+  {
+    name: 'Rose',
+    surname: 'Hathaway',
+    age: 26,
+    occupation: 'Maid / Housekeeper',
+    personality: ['Quiet', 'Observant', 'Nervous', 'Kind-hearted'],
+    background: 'A young woman who started working at the estate a year ago. She sees and hears everything but says little.',
+    relationshipToVictim: 'Personal maid to the victim',
+    possibleMotives: ['The victim was blackmailing her', 'She witnessed something she shouldn\'t have', 'The victim assaulted her'],
+    secretInfo: 'She is actually the victim\'s illegitimate daughter, searching for evidence',
+  },
+  {
+    name: 'Detective',
+    surname: 'Fletcher',
+    age: 48,
+    occupation: 'Private Investigator',
+    personality: ['Skeptical', 'Sharp', 'Rough', 'Determined'],
+    background: 'A former police detective hired by an anonymous party to investigate the victim. His presence is not coincidental.',
+    relationshipToVictim: 'Was investigating the victim for fraud',
+    possibleMotives: ['The victim was about to expose his past', 'Was paid to protect rather than investigate', 'The victim destroyed evidence he needed'],
+    secretInfo: 'The victim was responsible for his partner\'s death years ago',
+  },
+  {
+    name: 'Count',
+    surname: 'Volkov',
+    age: 50,
+    occupation: 'Russian Expatriate',
+    personality: ['Mysterious', 'Politely menacing', 'Well-dressed', 'Calculating'],
+    background: 'A foreign businessman with interests in the victim\'s company. His polished exterior hides a ruthless nature.',
+    relationshipToVictim: 'Business rival who was in negotiations with the victim',
+    possibleMotives: ['The victim cheated him in a business deal', 'Was being investigated by the victim', 'Needed the victim silenced before a merger'],
+    secretInfo: 'Is actually an intelligence agent investigating the victim\'s illegal arms deals',
+  },
+  {
+    name: 'Penelope',
+    surname: 'Blackwood',
+    age: 24,
+    occupation: 'Socialite / Heiress',
+    personality: ['Spoiled', 'Emotional', 'Impulsive', 'Genuine'],
+    background: 'The victim\'s youngest child, who appears to care only about parties and money. May be smarter than she pretends.',
+    relationshipToVictim: 'Youngest daughter, still financially dependent',
+    possibleMotives: ['The victim cut off her allowance', 'She discovered the victim killed her mother', 'Was protecting her secret lover'],
+    secretInfo: 'Is secretly in love with someone the victim was blackmailing',
+  },
+];
+
+export const MURDER_LOCATIONS = [
+  { name: 'The Grand Library', description: 'A two-story library filled with leather-bound books. A large bay window overlooks the garden. A heavy oak desk sits in the center, papers scattered across it.' },
+  { name: 'The Conservatory', description: 'A glass-domed room filled with exotic plants and flowers. The air is humid and fragrant. Stone pathways wind between tropical foliage.' },
+  { name: 'The Ballroom', description: 'An enormous hall with crystal chandeliers and marble floors. Long velvet curtains drape the windows. A grand piano sits in the corner.' },
+  { name: 'The Study', description: 'A cozy wood-paneled room with a roaring fireplace. Hunting trophies adorn the walls. Decanters of expensive liquor line the bar.' },
+  { name: 'The Dining Hall', description: 'A formal dining room with a table set for twelve. Family portraits line the walls. A dumbwaiter connects to the kitchen below.' },
+  { name: 'The Billiard Room', description: 'A masculine space with green felt tables and leather chairs. Trophy cases display hunting awards. A hidden safe is behind one of the paintings.' },
+  { name: 'The Kitchen', description: 'A large industrial kitchen with copper pots hanging from racks. Knife blocks line the counters. A back door leads to the garden.' },
+  { name: 'The Attic', description: 'A dusty, forgotten space cluttered with old furniture and trunks. Cobwebs stretch across the rafters. A single window provides dim light.' },
+  { name: 'The Wine Cellar', description: 'A cool, dark basement filled with vintage wines. Stone walls and earthen floor. A locked cage holds the most valuable bottles.' },
+  { name: 'The Garden Gazebo', description: 'A beautiful stone gazebo covered in climbing roses. A small fountain trickles nearby. The path from the house is lined with lanterns.' },
+];
+
+export const WEAPON_TYPES = [
+  { name: 'Silver Candlestick', description: 'A heavy, ornate candlestick from the dining room. Engraved with the family crest. One of a set of six.' },
+  { name: 'Antique Letter Opener', description: 'A brass letter opener shaped like a dagger. Found on the victim\'s desk. The tip appears to have been recently cleaned.' },
+  { name: 'Fireplace Poker', description: 'An iron fireplace tool from the study. The handle is ornately carved. Traces of soot and... something else.' },
+  { name: 'Kitchen Knife', description: 'A professional chef\'s knife from the kitchen. Recently sharpened. The handle has a distinctive grip pattern.' },
+  { name: 'Marble Bookend', description: 'A heavy marble bust of Shakespeare from the library. The base is chipped as if it was dropped.' },
+  { name: 'Poison', description: 'A vial of clear liquid, odorless and tasteless. Traces found in a partially empty wine glass in the study.' },
+  { name: 'Silken Cord', description: 'An ornamental rope from the ballroom curtains. Cut cleanly at one end. Used for dramatic curtain pulls.' },
+  { name: 'Paperweight', description: 'A crystal paperweight from the study. Contains a trapped air bubble. No fingerprints found on it.' },
+  { name: 'Bronze Statuette', description: 'A small bronze statue from the hallway. Depicts a hunting dog. Fits perfectly in the hand.' },
+  { name: 'Decanter', description: 'A heavy crystal whiskey decanter from the study\'s bar. Still half full. The victim was drinking from it.' },
+];
+
+export const TIME_SLOTS = [
+  { slot: '19:00', label: '7:00 PM' },
+  { slot: '19:30', label: '7:30 PM' },
+  { slot: '20:00', label: '8:00 PM' },
+  { slot: '20:30', label: '8:30 PM' },
+  { slot: '21:00', label: '9:00 PM' },
+  { slot: '21:30', label: '9:30 PM' },
+  { slot: '22:00', label: '10:00 PM' },
+  { slot: '22:30', label: '10:30 PM' },
+  { slot: '23:00', label: '11:00 PM' },
+  { slot: '23:30', label: '11:30 PM' },
+];
+
+export const CLUE_TEMPLATES = [
+  { description: 'A torn piece of cloth caught on the door handle', type: 'physical', phaseRevealed: 'early' },
+  { description: 'Footprints in the garden soil leading away from the window', type: 'physical', phaseRevealed: 'early' },
+  { description: 'A half-burned letter in the fireplace, mostly readable', type: 'physical', phaseRevealed: 'early' },
+  { description: 'Fingerprint on a glass that doesn\'t match the victim', type: 'physical', phaseRevealed: 'early' },
+  { description: 'A mud stain on the carpet, traced to the garden path', type: 'physical', phaseRevealed: 'early' },
+  { description: 'An empty vial hidden behind a bookshelf', type: 'physical', phaseRevealed: 'mid' },
+  { description: 'A blood-stained handkerchief monogrammed with initials', type: 'physical', phaseRevealed: 'mid' },
+  { description: 'A locked drawer containing threatening letters', type: 'physical', phaseRevealed: 'mid' },
+  { description: 'A photograph showing the victim with a mysterious figure', type: 'physical', phaseRevealed: 'mid' },
+  { description: 'A hidden compartment containing a significant sum of money', type: 'physical', phaseRevealed: 'mid' },
+  { description: 'A broken watch stopped at the time of death', type: 'physical', phaseRevealed: 'late' },
+  { description: 'A diary entry detailing the victim\'s fears', type: 'physical', phaseRevealed: 'late' },
+  { description: 'A secret passage behind the bookshelf', type: 'physical', phaseRevealed: 'late' },
+  { description: 'A discarded glove with traces of chemicals', type: 'physical', phaseRevealed: 'late' },
+  { description: 'Witness heard an argument coming from the room', type: 'testimony', phaseRevealed: 'early' },
+  { description: 'Someone was seen leaving the scene in a hurry', type: 'testimony', phaseRevealed: 'early' },
+  { description: 'A servant noticed the victim was agitated earlier', type: 'testimony', phaseRevealed: 'mid' },
+  { description: 'A phone call was made from the victim\'s phone after their death', type: 'digital', phaseRevealed: 'mid' },
+  { description: 'An email threatening the victim was sent yesterday', type: 'digital', phaseRevealed: 'early' },
+  { description: 'The security system was disabled for 15 minutes', type: 'digital', phaseRevealed: 'late' },
+];
+
+export const CLUE_TYPE = {
+  PHYSICAL: 'physical',
+  TESTIMONY: 'testimony',
+  DIGITAL: 'digital',
+  CIRCUMSTANTIAL: 'circumstantial',
+};
+
+export const PHASE_REVEAL = {
+  EARLY: 'early',
+  MID: 'mid',
+  LATE: 'late',
+};
