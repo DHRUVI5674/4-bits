@@ -34,6 +34,14 @@ class GameRepository {
     );
   }
 
+  async assignCharacter(roomCode, playerId, character) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase(), 'players.playerId': playerId },
+      { $set: { 'players.$.character': character } },
+      { new: true }
+    );
+  }
+
   async removePlayer(roomCode, playerId) {
     return Game.findOneAndUpdate(
       { roomCode: roomCode.toUpperCase() },
@@ -48,6 +56,54 @@ class GameRepository {
 
   async save(game) {
     return game.save();
+  }
+
+  async updateStory(roomCode, storyData) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase() },
+      { $set: storyData },
+      { new: true }
+    );
+  }
+
+  async appendTimeline(roomCode, timelineEvents) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase() },
+      { $push: { timeline: { $each: timelineEvents } } },
+      { new: true }
+    );
+  }
+
+  async appendClues(roomCode, clues) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase() },
+      { $push: { 'gameState.mystery.clues': { $each: clues } } },
+      { new: true }
+    );
+  }
+
+  async appendEvents(roomCode, events) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase() },
+      { $push: { 'gameState.mystery.timeline': { $each: events } } },
+      { new: true }
+    );
+  }
+
+  async appendNpcs(roomCode, npcs) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase() },
+      { $push: { 'gameState.mystery.npcs': { $each: npcs } } },
+      { new: true }
+    );
+  }
+
+  async setSolution(roomCode, solution) {
+    return Game.findOneAndUpdate(
+      { roomCode: roomCode.toUpperCase() },
+      { $set: { 'gameState.mystery.solution': solution } },
+      { new: true }
+    );
   }
 }
 

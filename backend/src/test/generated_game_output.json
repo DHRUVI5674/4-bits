@@ -1,0 +1,111 @@
+{
+  "game": {
+    "theme": "Victorian Manor murder mystery",
+    "storySeed": "game-json-1783680469468",
+    "world": "A grand Victorian manor with gothic architecture and eerie corridors. Moonlight casts ghostly shadows through the large windows, adding to the tense atmosphere.",
+    "crime": "The victim was found dead in his study with a poison-filled vial nearby.",
+    "victim": "Sir Reginald Merton",
+    "murderer": "Lady Eleanor Merton"
+  },
+  "players": [
+    {
+      "id": "player-1",
+      "name": "Astra",
+      "occupation": "Detective",
+      "background": "Experienced in solving complex cases, Astra is known for their keen eye and logical reasoning.",
+      "objective": "Uncover the truth behind Sir Reginald Merton's death and solve the mystery.",
+      "secret": "Astra discovered a hidden diary entry hinting at an affair between Sir Reginald and Lady Eleanor.",
+      "inventory": [
+        "detective badge",
+        "notebook",
+        "pen",
+        "magnifying glass"
+      ],
+      "knownClues": [
+        "Sir Reginald's study was not properly locked.",
+        "A poison-filled vial in the study."
+      ],
+      "motive": "None known, but Astra suspects Lady Eleanor Merton.",
+      "alibi": "Was seen arguing with Sir Reginald earlier in the evening near the library.",
+      "isMurderer": false
+    },
+    {
+      "id": "player-2",
+      "name": "Beck",
+      "occupation": "Gardener",
+      "background": "Has a mysterious past involving the manor's previous owner.",
+      "objective": "Uncover the truth behind Sir Reginald Merton's death and clear his name.",
+      "secret": "Knew Sir Reginald before he inherited the manor.",
+      "inventory": [
+        "rake",
+        "handkerchief"
+      ],
+      "knownClues": [
+        "moonlight patterns on walls",
+        "a hidden door in the study"
+      ],
+      "motive": "None known, but Beck feels a sense of obligation to help uncover the truth.",
+      "alibi": "Was seen by the garden staff near midnight in the greenhouse.",
+      "isMurderer": false
+    },
+    {
+      "id": "player-3",
+      "name": "Cira",
+      "occupation": "Lady",
+      "background": "A refined lady with a mysterious past. She is often seen in the manor's ballrooms, dancing gracefully and conversing with other guests.",
+      "objective": "Uncover the truth behind Sir Reginald Merton's death and clear her family's name if necessary.",
+      "secret": "Cira was once romantically involved with Sir Reginald but broke things off before his marriage to Lady Eleanor.",
+      "inventory": [
+        "a lace handkerchief",
+        "a small mirror"
+      ],
+      "knownClues": [
+        "footprints leading away from the study",
+        "a lock of hair near the crime scene"
+      ],
+      "motive": "Jealousy over Sir Reginald's affection towards another woman in his past.",
+      "alibi": "Cira was seen dancing with other guests at the ballroom when the murder occurred.",
+      "isMurderer": false
+    }
+  ],
+  "timeline": [
+    {
+      "time": "T-2 hours",
+      "description": "Astra arrives at the manor and begins her investigation.",
+      "evidenceRefs": [
+        "Vial1"
+      ]
+    },
+    {
+      "time": "T-1 hour 45 minutes",
+      "description": "Beck reports finding a torn letter in the study, which mentions a past affair of Sir Reginald.",
+      "evidenceRefs": [
+        "Letter1"
+      ]
+    },
+    {
+      "time": "T-1 hour 30 minutes",
+      "description": "Cira visits her father's study and notices an open vial on his desk.",
+      "evidenceRefs": [
+        "Vial1"
+      ]
+    },
+    {
+      "time": "T-1 hour",
+      "description": "Astra examines the vial found by Cira, discovering it contains a rare poison.",
+      "evidenceRefs": []
+    },
+    {
+      "time": "T-30 minutes",
+      "description": "Beck is questioned by Astra about his whereabouts during the time of death.",
+      "evidenceRefs": [
+        "Notebook1"
+      ]
+    },
+    {
+      "time": "T-25 minutes",
+      "description": "Cira discusses her feelings and motives with a sympathetic Aunt Clara in her quarters.",
+      "evidenceRefs": []
+    }
+  ]
+}

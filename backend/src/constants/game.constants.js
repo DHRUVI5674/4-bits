@@ -5,13 +5,14 @@ export const GAME_STATUS = {
 };
 
 export const GAME_PHASE = {
-  LOBBY: 'lobby',
-  SETUP: 'setup',
+  WAITING: 'waiting',
+  ROLE_ASSIGNMENT: 'role_assignment',
+  INTRODUCTION: 'introduction',
   INVESTIGATION: 'investigation',
   DISCUSSION: 'discussion',
   VOTING: 'voting',
-  REVEAL: 'reveal',
-  ENDED: 'ended',
+  RESULT: 'result',
+  FINISHED: 'finished',
 };
 
 export const SESSION_STATUS = {

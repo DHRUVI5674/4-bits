@@ -67,9 +67,43 @@ const gameSchema = new mongoose.Schema({
     enum: ['waiting', 'started', 'ended'],
     default: 'waiting',
   },
+  phase: {
+    type: String,
+    enum: ['waiting', 'role_assignment', 'introduction', 'investigation', 'discussion', 'voting', 'result', 'finished'],
+    default: 'waiting',
+  },
   hostId: {
     type: String,
     required: true,
+  },
+  theme: {
+    type: String,
+    default: '',
+  },
+  difficulty: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    default: 'medium',
+  },
+  storySeed: {
+    type: String,
+    default: '',
+  },
+  world: {
+    type: String,
+    default: '',
+  },
+  crime: {
+    type: String,
+    default: '',
+  },
+  victim: {
+    type: String,
+    default: '',
+  },
+  murderer: {
+    type: String,
+    default: '',
   },
   settings: {
     maxPlayers: {
@@ -90,9 +124,11 @@ const gameSchema = new mongoose.Schema({
     mystery: {
       victim: String,
       location: String,
-      solution: String,
+      solution: { type: mongoose.Schema.Types.Mixed, default: null },
       timeline: [Object],
-      clues: [Object]
+      clues: [Object],
+      npcs: [Object],
+      events: [Object]
     }
   },
   sessionId: {

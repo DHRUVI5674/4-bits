@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import logger from './middleware/logger.js';
 import errorHandler from './middleware/errorHandler.js';
 import gameRoutes from './routes/game.routes.js';
+import storyRoutes from './routes/story.routes.js';
 import AppError from './utils/appError.js';
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(logger);
 
 // Routes
 app.use('/api/games', gameRoutes);
+app.use('/api/story', storyRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {

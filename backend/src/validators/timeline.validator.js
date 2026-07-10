@@ -1,0 +1,15 @@
+import { body } from 'express-validator';
+
+export const generateTimelineValidator = [
+  body('roomCode')
+    .exists()
+    .withMessage('roomCode is required')
+    .isString(),
+  body('hostId')
+    .exists()
+    .withMessage('hostId is required')
+    .isString(),
+  body('storySeed')
+    .optional()
+    .isString(),
+];
