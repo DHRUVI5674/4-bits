@@ -5,8 +5,9 @@ import {
   beginInvestigation,
   getRoomByCode,
   listPlayers,
-  setReady } from
-"@/lib/rooms";
+  setReady,
+  MODE_LABELS
+} from "@/lib/rooms";
 import { getPlayerId } from "@/lib/player-id";
 
 export const Route = createFileRoute("/lobby/$code")({
@@ -53,7 +54,7 @@ function Lobby() {
   useEffect(() => {
     if (!room || !playerId) return;
 
-    const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
     const socket = io(API_BASE, {
       auth: { roomCode: code, playerId }
     });
@@ -175,14 +176,17 @@ function Lobby() {
           ← Leave
         </Link>
 
-        <div className="mt-8 flex items-baseline justify-between gap-4">
+        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-baseline md:justify-between">
           <div>
             <span className="tracked-caps text-[11px] text-[color:var(--color-text-tertiary)]">
-              Investigation
+              Investigation · {MODE_LABELS[room.mode] || 'Unknown'}
             </span>
             <h1 className="font-serif-display mt-2 text-3xl md:text-4xl text-[color:var(--color-text-primary)]">
-              Mystery Game
+              {room.name || 'Mystery Game'}
             </h1>
+            <p className="mt-2 text-sm text-[color:var(--color-text-secondary)] max-w-2xl">
+              Host: {room.players.find((p) => p.isHost)?.name || 'Unknown'} · {players.length} / {room.settings?.maxPlayers || 0} investigators
+            </p>
           </div>
           <div className="text-right">
             <span className="tracked-caps block text-[10px] text-[color:var(--color-text-tertiary)]">
