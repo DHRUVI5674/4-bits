@@ -57,3 +57,11 @@ export const leaveSocketRoom = (socket, roomCode) => {
   socket.leave(roomCode);
   console.log(`[Socket] ${socket.id} left room ${roomCode}`);
 };
+
+/**
+ * Gets all sockets in a room.
+ */
+export const getSocketsInRoom = async (io, roomCode) => {
+  const sockets = await io.in(roomCode).fetchSockets();
+  return sockets;
+};

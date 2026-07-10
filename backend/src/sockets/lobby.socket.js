@@ -1,6 +1,6 @@
 import * as gameService from '../services/game.service.js';
 import { SOCKET_EVENTS, ERROR_CODES } from './events/socket.events.js';
-import { broadcastRoom, emitError, joinSocketRoom, leaveSocketRoom } from './helpers/socket.helpers.js';
+import { broadcastRoom, emitError, joinSocketRoom, leaveSocketRoom, getSocketsInRoom } from './helpers/socket.helpers.js';
 
 /**
  * @file lobby.socket.js
@@ -67,10 +67,57 @@ const lobbyHandler = (io, socket) => {
    */
   const handleStartGame = async () => {
     try {
-      const game = await gameService.startGame(roomCode, playerId);
-      
+      const result = await gameService.startGame(roomCode, playerId);
+      const { game, session, playerAssignments } = result;
+
       io.to(roomCode).emit(SOCKET_EVENTS.GAME_STARTED, { status: 'started' });
-      
+
+      io.to(roomCode).emit(SOCKET_EVENTS.GAME_INITIALIZED, {
+        gameId: session.gameId,
+        phase: session.phase,
+        theme: session.theme,
+        location: session.location,
+        suspectCount: session.suspectCount,
+        characterCount: session.characterCount,
+      });
+
+      io.to(roomCode).emit(SOCKET_EVENTS.STORY_GENERATED, {
+        theme: session.theme,
+        location: session.location,
+        victim: session.victim,
+        timeOfDeath: session.timeOfDeath,
+        causeOfDeath: session.causeOfDeath,
+        murderWeapon: session.murderWeapon,
+      });
+
+      const roomSockets = await getSocketsInRoom(io, roomCode);
+      for (const [pId, assignment] of Object.entries(playerAssignments)) {
+        const playerSocket = roomSockets.find(s => s.data.playerId === pId);
+        if (playerSocket) {
+          io.to(playerSocket.id).emit(SOCKET_EVENTS.CHARACTER_ASSIGNED, {
+            characterId: assignment.characterId,
+            name: assignment.name,
+          });
+        }
+      }
+
+      io.to(roomCode).emit(SOCKET_EVENTS.CHARACTERS_GENERATED, {
+        count: session.characterCount,
+      });
+
+      io.to(roomCode).emit(SOCKET_EVENTS.EVIDENCE_GENERATED, {
+        count: 0,
+      });
+
+      io.to(roomCode).emit(SOCKET_EVENTS.TIMELINE_GENERATED, {
+        count: 0,
+      });
+
+      io.to(roomCode).emit(SOCKET_EVENTS.GAME_SETUP_COMPLETE, {
+        status: 'ready',
+        phase: session.phase,
+      });
+
       broadcastRoom(io, game);
     } catch (error) {
       emitError(socket, ERROR_CODES.NOT_HOST, error.message);

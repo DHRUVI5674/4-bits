@@ -1,13 +1,44 @@
-/**
- * @file game.socket.js
- * @description Handles real-time events during investigation and voting phases.
- * Logic will be expanded in Phase 3 (AI Game Master).
- */
+import * as gameService from '../services/game.service.js';
+import { SOCKET_EVENTS, ERROR_CODES } from './events/socket.events.js';
+
 const gameHandler = (io, socket) => {
-  // Placeholders for future game phases:
-  // socket.on(SOCKET_EVENTS.ASK_QUESTION, ...)
-  // socket.on(SOCKET_EVENTS.SUBMIT_VOTE, ...)
-  // socket.on(SOCKET_EVENTS.REQUEST_EVIDENCE, ...)
+  const { roomCode, playerId } = socket.data;
+
+  const handleGetSession = async () => {
+    try {
+      const session = await gameService.getGameSession(roomCode);
+      socket.emit(SOCKET_EVENTS.GAME_INITIALIZED, {
+        gameId: session.gameId,
+        phase: session.phase,
+        theme: session.theme,
+        location: session.location,
+        victim: session.victim,
+        timeOfDeath: session.timeOfDeath,
+        causeOfDeath: session.causeOfDeath,
+        suspectCount: session.suspects.length,
+      });
+    } catch (error) {
+      socket.emit(SOCKET_EVENTS.ERROR, {
+        code: ERROR_CODES.SESSION_NOT_FOUND,
+        message: error.message,
+      });
+    }
+  };
+
+  const handleGetMyCharacter = async () => {
+    try {
+      const character = await gameService.getPlayerGameCharacter(roomCode, playerId);
+      socket.emit(SOCKET_EVENTS.CHARACTER_ASSIGNED, character);
+    } catch (error) {
+      socket.emit(SOCKET_EVENTS.ERROR, {
+        code: ERROR_CODES.PLAYER_NOT_FOUND,
+        message: error.message,
+      });
+    }
+  };
+
+  socket.on('get-session', handleGetSession);
+  socket.on('get-my-character', handleGetMyCharacter);
 };
 
 export default gameHandler;
