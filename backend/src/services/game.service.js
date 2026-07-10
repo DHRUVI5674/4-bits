@@ -9,13 +9,18 @@ import { GAME_STATUS, GAME_PHASE } from '../constants/game.constants.js';
  * @description Business logic for game management.
  */
 
-export const createGame = async (hostName) => {
-  const hostId = nanoid(10);
+export const createGame = async (name, mode, maxMembers, hostId, hostName) => {
   const roomCode = nanoid(6).toUpperCase();
 
   const gameData = {
     roomCode,
+    name,
+    mode,
     hostId,
+    settings: {
+      maxPlayers: maxMembers,
+      minPlayers: 3,
+    },
     players: [{
       playerId: hostId,
       name: hostName,
@@ -38,7 +43,7 @@ export const getGameByCode = async (roomCode) => {
   return game;
 };
 
-export const joinGame = async (roomCode, playerName) => {
+export const joinGame = async (roomCode, playerId, playerName) => {
   const game = await gameRepository.findByCode(roomCode);
 
   if (!game) {
@@ -53,19 +58,24 @@ export const joinGame = async (roomCode, playerName) => {
     throw new AppError('Game is full', 400);
   }
 
-  const nameExists = game.players.some(p => p.name.toLowerCase() === playerName.toLowerCase());
+  const nameExists = game.players.some(p => p.name.toLowerCase() === playerName.toLowerCase() && p.playerId !== playerId);
   if (nameExists) {
     throw new AppError('Player name already taken in this room', 400);
   }
 
-  const playerId = nanoid(10);
-  game.players.push({
-    playerId,
-    name: playerName,
-    isHost: false,
-    isReady: false,
-    isConnected: false
-  });
+  const existingPlayerIndex = game.players.findIndex(p => p.playerId === playerId);
+  if (existingPlayerIndex >= 0) {
+    // Player is rejoining, update their name if it changed
+    game.players[existingPlayerIndex].name = playerName;
+  } else {
+    game.players.push({
+      playerId,
+      name: playerName,
+      isHost: false,
+      isReady: false,
+      isConnected: false
+    });
+  }
 
   await gameRepository.save(game);
   return { game, playerId };

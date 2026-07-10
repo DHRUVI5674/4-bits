@@ -8,8 +8,8 @@ import { successResponse } from '../utils/responseFormatter.js';
 
 export const createGame = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    const { game, hostId } = await gameService.createGame(name);
+    const { name, mode, maxMembers, hostId, hostName } = req.body;
+    const { game } = await gameService.createGame(name, mode, maxMembers, hostId, hostName);
     successResponse(res, { game, playerId: hostId }, 'Game created successfully', 201);
   } catch (error) {
     next(error);
@@ -27,8 +27,8 @@ export const getGame = async (req, res, next) => {
 
 export const joinGame = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    const { game, playerId } = await gameService.joinGame(req.params.code.toUpperCase(), name);
+    const { playerId, playerName } = req.body;
+    const { game } = await gameService.joinGame(req.params.code.toUpperCase(), playerId, playerName);
     successResponse(res, { game, playerId }, 'Joined game successfully');
   } catch (error) {
     next(error);

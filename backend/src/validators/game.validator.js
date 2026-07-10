@@ -5,8 +5,24 @@ export const createGameValidator = [
     .trim()
     .notEmpty()
     .withMessage('Name is required')
-    .isLength({ min: 2, max: 20 })
-    .withMessage('Name must be between 2 and 20 characters'),
+    .isLength({ min: 2, max: 60 })
+    .withMessage('Name must be between 2 and 60 characters'),
+  body('hostName')
+    .trim()
+    .notEmpty()
+    .withMessage('Host name is required')
+    .isLength({ min: 2, max: 40 })
+    .withMessage('Host name must be between 2 and 40 characters'),
+  body('hostId')
+    .trim()
+    .notEmpty()
+    .withMessage('Host ID is required'),
+  body('mode')
+    .optional()
+    .isString(),
+  body('maxMembers')
+    .optional()
+    .isInt({ min: 3, max: 10 }),
 ];
 
 export const joinGameValidator = [
@@ -16,12 +32,16 @@ export const joinGameValidator = [
     .withMessage('Room code is required')
     .isLength({ min: 6, max: 10 })
     .withMessage('Invalid room code'),
-  body('name')
+  body('playerName')
     .trim()
     .notEmpty()
-    .withMessage('Name is required')
-    .isLength({ min: 2, max: 20 })
-    .withMessage('Name must be between 2 and 20 characters'),
+    .withMessage('Player name is required')
+    .isLength({ min: 2, max: 40 })
+    .withMessage('Player name must be between 2 and 40 characters'),
+  body('playerId')
+    .trim()
+    .notEmpty()
+    .withMessage('Player ID is required'),
 ];
 
 export const roomIdValidator = [

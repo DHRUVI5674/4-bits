@@ -53,6 +53,15 @@ const gameSchema = new mongoose.Schema({
     unique: true,
     default: () => nanoid(6).toUpperCase(),
   },
+  name: {
+    type: String,
+    required: true,
+    default: "Classified Case",
+  },
+  mode: {
+    type: String,
+    default: "classic_mansion",
+  },
   status: {
     type: String,
     enum: ['waiting', 'started', 'ended'],
@@ -65,11 +74,11 @@ const gameSchema = new mongoose.Schema({
   settings: {
     maxPlayers: {
       type: Number,
-      default: 8,
+      default: 5,
     },
     minPlayers: {
       type: Number,
-      default: 4,
+      default: 3,
     },
   },
   players: [playerSchema],
