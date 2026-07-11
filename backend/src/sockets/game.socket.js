@@ -291,13 +291,21 @@ const gameHandler = (io, socket) => {
                   votes: fakeVotes
                 });
 
+                let finalText = "The investigators failed to reach a conclusion in time. The killer slipped away into the night, leaving the case unresolved forever.";
+                
                 if (aiService.aiClient) {
-                   const res = await aiService.aiClient.generateCompletion(revealPrompt);
-                   session.finalReveal = res.response || res.result || res;
-                   await session.save();
+                   const aiPromise = aiService.aiClient.generateCompletion(revealPrompt);
+                   const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+                   const res = await Promise.race([aiPromise, timeoutPromise]);
+                   finalText = res.response || res.result || res;
                 }
+                
+                session.finalReveal = finalText;
+                await session.save();
               } catch(e) {
-                console.error("[AI Final Reveal Error]", e);
+                console.error("[AI Final Reveal Error/Timeout]", e.message);
+                session.finalReveal = "The investigators failed to reach a conclusion in time. The killer slipped away into the night, leaving the case unresolved forever.";
+                await session.save();
               }
               
               io.to(roomCode).emit(SOCKET_EVENTS.GAME_ENDED, {

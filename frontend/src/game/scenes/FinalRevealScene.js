@@ -821,6 +821,46 @@ export default class FinalRevealScene extends Phaser.Scene {
         duration: 220,
         ease: 'Back.easeOut',
       });
+      
+      // Add 'NEW GAME' and 'JOIN SAME ONE' buttons
+      this.time.delayedCall(1200, () => {
+        const btnY = panelY + panelH + 25;
+        
+        const newGameBtn = this.add.text(panelX + panelW/4, btnY, 'NEW GAME', {
+          fontFamily: 'Courier Prime, Courier, monospace',
+          fontSize: '12px',
+          color: '#ffffff',
+          backgroundColor: '#991b1b',
+          padding: { x: 16, y: 8 },
+          fontStyle: 'bold'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0).setDepth(DEPTH);
+
+        const playAgainBtn = this.add.text(panelX + (panelW * 3/4), btnY, 'JOIN SAME ONE', {
+          fontFamily: 'Courier Prime, Courier, monospace',
+          fontSize: '12px',
+          color: '#ffffff',
+          backgroundColor: '#374151',
+          padding: { x: 16, y: 8 },
+          fontStyle: 'bold'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0).setDepth(DEPTH);
+
+        this._track(newGameBtn);
+        this._track(playAgainBtn);
+
+        this.tweens.add({
+          targets: [newGameBtn, playAgainBtn],
+          alpha: 1,
+          duration: 500
+        });
+
+        newGameBtn.on('pointerdown', () => {
+          window.location.href = '/';
+        });
+
+        playAgainBtn.on('pointerdown', () => {
+          window.location.href = `/investigation/${this.roomCode}`;
+        });
+      });
     });
   }
 

@@ -6,6 +6,89 @@ import { nanoid } from 'nanoid';
 
 const activeTimers = {}; // roomCode -> { roundTimeout, discussionTimeout }
 
+async function endGameWithKillerWin(code, session, game, message) {
+  session.phase = GAME_PHASE.RESULT;
+  
+  const msgObj = {
+    messageId: 'msg_' + nanoid(8),
+    type: 'ai',
+    author: 'Game Master',
+    text: message,
+    createdAt: new Date()
+  };
+  session.logs.push(msgObj);
+  await session.save();
+
+  game.gameState.phase = GAME_PHASE.RESULT;
+  game.phase = GAME_PHASE.RESULT;
+  game.status = 'ended';
+  await game.save();
+
+  const murdererChar = session.characters.find(c => c.isMurderer);
+  const murdererPlayerId = murdererChar?.playerId;
+  const allPlayers = game.players.map(player => {
+    const char = session.characters.find(c => c.playerId === player.playerId);
+    return {
+      playerId: player.playerId,
+      name: player.name,
+      characterName: char?.name || player.name,
+      occupation: char?.occupation || '',
+      isMurderer: char?.isMurderer || false,
+      isEliminated: char ? (char.emergencyMeetingsRemaining === 0) : false,
+    };
+  });
+
+  const basePayload = {
+    accusedId: null,
+    actualKillerId: murdererPlayerId,
+    killerName: murdererChar?.name || 'Unknown',
+    killerOccupation: murdererChar?.occupation || 'Unknown',
+    killerMotive: session.motiveSummary || session.solution?.motive || '',
+    murderWeapon: session.murderWeapon || '',
+    victim: session.victim || '',
+    location: session.location || '',
+    causeOfDeath: session.causeOfDeath || '',
+    timeOfDeath: session.timeOfDeath || '',
+    roundNumber: session.roundNumber,
+    allPlayers,
+    outcome: 'killer_wins'
+  };
+
+  const io = getIO();
+  io.to(code).emit('phase-updated', GAME_PHASE.RESULT);
+  io.to(code).emit('log-updated', session.logs);
+  io.to(code).emit('session-updated', session);
+  
+  // Generate AI story in background with 5s timeout
+  setTimeout(async () => {
+      try {
+        const { buildFinalRevealPrompt } = await import('../prompts/investigation.prompt.js');
+        const aiService = await import('./ai.service.js');
+        const revealPrompt = buildFinalRevealPrompt({
+          gameContext: session,
+          votes: [] 
+        });
+        
+        let finalText = "The investigators failed to reach a conclusion in time. The killer slipped away into the night, leaving the case unresolved forever.";
+        
+        if (aiService.aiClient) {
+          const aiPromise = aiService.aiClient.generateCompletion(revealPrompt);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+          const res = await Promise.race([aiPromise, timeoutPromise]);
+          finalText = res.response || res.result || res;
+        }
+        
+        session.finalReveal = finalText;
+        await session.save();
+      } catch(e) {
+        console.error("[AI Final Reveal Error/Timeout]", e.message);
+        session.finalReveal = "The investigators failed to reach a conclusion in time. The killer slipped away into the night, leaving the case unresolved forever.";
+        await session.save();
+      }
+      io.to(code).emit('game:ended', basePayload);
+  }, 100);
+}
+
 export const startRound = async (roomCode) => {
   const code = roomCode.toUpperCase();
   clearTimers(code);
@@ -24,79 +107,7 @@ export const startRound = async (roomCode) => {
     // Only increment round number if this is not the very first round initialization
     if (session.roundTimerEnd !== null) {
       if (session.roundNumber >= (session.maxRounds || 3)) {
-        // Max rounds reached and killer was not captured -> Killer wins!
-        session.phase = GAME_PHASE.RESULT;
-        
-        const votingMsg = {
-          messageId: 'msg_' + nanoid(8),
-          type: 'ai',
-          author: 'Game Master',
-          text: `[INVESTIGATION FAILED] Time has run out. The killer has escaped!`,
-          createdAt: new Date()
-        };
-        session.logs.push(votingMsg);
-        await session.save();
-
-        game.gameState.phase = GAME_PHASE.RESULT;
-        game.phase = GAME_PHASE.RESULT;
-        game.status = 'ended';
-        await game.save();
-
-        const murdererChar = session.characters.find(c => c.isMurderer);
-        const murdererPlayerId = murdererChar?.playerId;
-        const allPlayers = game.players.map(player => {
-          const char = session.characters.find(c => c.playerId === player.playerId);
-          return {
-            playerId: player.playerId,
-            name: player.name,
-            characterName: char?.name || player.name,
-            occupation: char?.occupation || '',
-            isMurderer: char?.isMurderer || false,
-            isEliminated: char ? (char.emergencyMeetingsRemaining === 0) : false,
-          };
-        });
-
-        const basePayload = {
-          accusedId: null,
-          actualKillerId: murdererPlayerId,
-          killerName: murdererChar?.name || 'Unknown',
-          killerOccupation: murdererChar?.occupation || 'Unknown',
-          killerMotive: session.motiveSummary || session.solution?.motive || '',
-          murderWeapon: session.murderWeapon || '',
-          victim: session.victim || '',
-          location: session.location || '',
-          causeOfDeath: session.causeOfDeath || '',
-          timeOfDeath: session.timeOfDeath || '',
-          roundNumber: session.roundNumber,
-          allPlayers,
-          outcome: 'killer_wins'
-        };
-
-        const io = getIO();
-        io.to(code).emit('phase-updated', GAME_PHASE.RESULT);
-        io.to(code).emit('log-updated', session.logs);
-        io.to(code).emit('session-updated', session);
-        
-        // Generate AI story in background
-        setTimeout(async () => {
-           try {
-             const { buildFinalRevealPrompt } = await import('../prompts/investigation.prompt.js');
-             const aiService = await import('./ai.service.js');
-             const revealPrompt = buildFinalRevealPrompt({
-                gameContext: session,
-                votes: [] // no votes, time ran out
-             });
-             if (aiService.aiClient) {
-                const res = await aiService.aiClient.generateCompletion(revealPrompt);
-                session.finalReveal = res.response || res.result || res;
-                await session.save();
-             }
-           } catch(e) {
-             console.error("[AI Final Reveal Error]", e);
-           }
-           io.to(code).emit('game:ended', basePayload);
-        }, 100);
-
+        await endGameWithKillerWin(code, session, game, `[INVESTIGATION FAILED] Time has run out. The killer has escaped!`);
         return;
       }
       session.roundNumber += 1;
@@ -265,7 +276,20 @@ export const triggerEmergencyMeeting = async (roomCode, callerId, callerName) =>
 
     // Set 60s discussion timeout
     activeTimers[code] = {
-      discussionTimeout: setTimeout(() => {
+      discussionTimeout: setTimeout(async () => {
+        try {
+          const freshSession = await GameSession.findOne({ roomCode: code });
+          if (freshSession && freshSession.votingState && !freshSession.votingState.resolved) {
+            // It was a meeting, and vote didn't resolve (timer ran out)
+            if (freshSession.votingState.votes.size === 0) {
+               const g = await Game.findOne({ roomCode: code });
+               await endGameWithKillerWin(code, freshSession, g, `[MEETING FAILED] The timer expired and no votes were cast. The killer seized the opportunity and escaped!`);
+               return;
+            }
+          }
+        } catch(e) {
+          console.error(e);
+        }
         startRound(code);
       }, 60000)
     };
