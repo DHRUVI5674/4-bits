@@ -45,6 +45,11 @@ export const getDiscoveredClues = async (roomCode) => {
     .map(e => ({
       id: e.evidenceId,
       title: e.name,
+      type: e.type,
+      location: e.location,
+      linkedCharacters: e.linkedCharacters,
+      rawDescription: e.description,
+      isRedHerring: e.isRedHerring,
       description: `${e.type || 'Evidence'} · ${e.description} (Location: ${e.location})`
     }));
 };
@@ -55,6 +60,7 @@ export const getActivePlayers = async (roomCode) => {
   const data = await response.json();
   return (data.data.players || []).map(p => ({
     id: p.playerId,
+    playerId: p.playerId,
     name: p.name,
     isReady: p.isReady,
     active: p.isConnected

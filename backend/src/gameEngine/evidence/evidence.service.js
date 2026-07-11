@@ -171,6 +171,11 @@ export function generateEvidence(characters, timeline, storyData) {
 
   evidenceItems.forEach((item, index) => {
     item.evidenceId = 'evid_' + (index + 1);
+    
+    // Configurable 30% chance for non-weapon clues to be red herrings
+    if (item.type !== EVIDENCE_TYPES.WEAPON && Math.random() < 0.3) {
+      item.isRedHerring = true;
+    }
   });
 
   return evidenceItems;

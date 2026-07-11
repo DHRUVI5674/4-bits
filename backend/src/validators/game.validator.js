@@ -23,6 +23,10 @@ export const createGameValidator = [
   body('maxMembers')
     .optional()
     .isInt({ min: 3, max: 10 }),
+  body('revealPolicy')
+    .optional()
+    .isIn(['immediate', 'final_only'])
+    .withMessage('revealPolicy must be either immediate or final_only'),
 ];
 
 export const joinGameValidator = [

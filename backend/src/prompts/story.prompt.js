@@ -1,9 +1,3 @@
-/*
-  story.prompt.js
-  Builds the prompt used by the Story Engine.
-  No execution logic is included here.
-*/
-
 export function buildStoryPrompt({ theme, seed, playerCount }) {
   const count = playerCount || 3;
   return `You are an AI story engine for a multiplayer murder mystery game.
@@ -43,6 +37,22 @@ Generate story content using the following structure only:
   - motive: String (their potential reason to want the victim dead)
   - inventory: Array of 2 strings (items they carry)
   - isMurderer: Boolean (true for exactly one suspect who is the murderer, false for others)
+- mapConfig: An object representing the physical layout coordinates for the game canvas (width 1600px, height 1200px; grid size 50x38 tiles where each tile is 32x32 pixels):
+  - rooms: An array of exactly 5 rooms/zones that partition the map. Each contains:
+    - name: String (e.g. "Library", "Foyer", "Conservatory", "Dining Room", "Study")
+    - x: Number (grid X coordinate, 1-40)
+    - y: Number (grid Y coordinate, 1-30)
+    - width: Number (grid width of the room, 6-15)
+    - height: Number (grid height of the room, 6-15)
+  - cluePlacements: An array of objects matching the clues. Each contains:
+    - clueName: String (must match the name of a clue/evidence generated)
+    - itemName: String (the name of the container/hotspot, e.g. "Desk", "Safe", "Bookshelf", "Laptop", "Waste Basket", "Fireplace")
+    - x: Number (pixel X coordinate of the hotspot, 100-1500)
+    - y: Number (pixel Y coordinate of the hotspot, 100-1100)
+  - suspectSpawns: An array of objects matching the suspects. Each contains:
+    - suspectName: String (must match one of the suspect names generated)
+    - x: Number (pixel X coordinate of their starting spawn position, 100-1500)
+    - y: Number (pixel Y coordinate of their starting spawn position, 100-1100)
 
 Respond with valid JSON only using the following schema:
 {
@@ -83,7 +93,33 @@ Respond with valid JSON only using the following schema:
       "inventory": ["string", "string"],
       "isMurderer": false
     }
-  ]
+  ],
+  "mapConfig": {
+    "rooms": [
+      {
+        "name": "string",
+        "x": 10,
+        "y": 10,
+        "width": 10,
+        "height": 10
+      }
+    ],
+    "cluePlacements": [
+      {
+        "clueName": "string",
+        "itemName": "string",
+        "x": 200,
+        "y": 300
+      }
+    ],
+    "suspectSpawns": [
+      {
+        "suspectName": "string",
+        "x": 150,
+        "y": 250
+      }
+    ]
+  }
 }
 
 Do not include any markdown, explanation, or extra fields.

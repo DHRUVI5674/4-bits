@@ -8,6 +8,7 @@ import gameSessionService from './session/gameSession.service.js';
 import gameStateService from './session/gameState.service.js';
 import { GAME_PHASE, SESSION_STATUS } from '../constants/game.constants.js';
 import { nanoid } from 'nanoid';
+import Game from '../models/game.model.js';
 
 const storyEngine = new StoryEngine({ aiClient: new OllamaService() });
 
@@ -17,15 +18,33 @@ function generateId(prefix) {
 
 class GameEngineService {
   async initializeGame(roomCode, players) {
+    const game = await Game.findOne({ roomCode: roomCode.toUpperCase() });
+    const gameMode = game ? game.mode : 'classic_mansion';
+
     let storyData;
-    try {
-      console.log(`[GameEngine] Starting AI story generation for room ${roomCode}`);
-      storyData = await this.generateStory({ seed: roomCode, playerCount: players.length });
-      console.log('[GameEngine] AI story generation succeeded:', storyData);
-    } catch (error) {
-      console.error('[GameEngine] AI story generation failed, using fallback template:', error.message);
-      storyData = this.generateFallbackStory(players.length);
-      console.log('[GameEngine] Fallback story data:', storyData);
+    let attempts = 2;
+
+    while (attempts > 0) {
+      try {
+        console.log(`[GameEngine] Starting AI story generation for room ${roomCode}. Attempt: ${3 - attempts}`);
+        storyData = await this.generateStory({ theme: gameMode, seed: roomCode, playerCount: players.length });
+        
+        // Validate mapConfig
+        if (!storyData.mapConfig || !this.validateMapConfig(storyData.mapConfig)) {
+          throw new Error('Invalid mapConfig structure in AI output');
+        }
+
+        console.log('[GameEngine] AI story generation and mapConfig succeeded.');
+        break;
+      } catch (error) {
+        attempts--;
+        console.error(`[GameEngine] AI story generation attempt failed: ${error.message}`);
+        if (attempts === 0) {
+          console.log('[GameEngine] Falling back to pre-designed template and story');
+          storyData = this.generateFallbackStory(players.length, gameMode);
+          storyData.mapConfig = this.getFallbackMapConfig(gameMode);
+        }
+      }
     }
 
     const charResult = generateCharacters(players.length, storyData);
@@ -75,6 +94,11 @@ class GameEngineService {
       });
     });
 
+    const seatAssignments = {};
+    players.forEach((p, idx) => {
+      seatAssignments[p.playerId] = idx;
+    });
+
     const sessionData = {
       roomCode,
       status: SESSION_STATUS.SETUP,
@@ -94,6 +118,7 @@ class GameEngineService {
       relationships,
       logs,
       solution,
+      seatAssignments,
     };
 
     const session = await gameSessionService.createSession(sessionData);
@@ -158,8 +183,16 @@ class GameEngineService {
     };
   }
 
-  generateFallbackStory(playerCount = 3) {
-    const fallback = this.constructor.FALLBACK_STORIES[Math.floor(Math.random() * this.constructor.FALLBACK_STORIES.length)];
+  generateFallbackStory(playerCount = 3, gameMode = 'classic_mansion') {
+    let fallback = this.constructor.FALLBACK_STORIES.find(s => {
+      if (gameMode === 'classic_mansion' && s.theme.toLowerCase().includes('mansion')) return true;
+      if (gameMode === 'cyber_crime' && s.theme.toLowerCase().includes('conspiracy')) return true;
+      if (gameMode === 'haunted_house' && s.theme.toLowerCase().includes('enigma')) return true;
+      return false;
+    });
+    if (!fallback) {
+      fallback = this.constructor.FALLBACK_STORIES[Math.floor(Math.random() * this.constructor.FALLBACK_STORIES.length)];
+    }
     
     const victimCharacter = {
       name: fallback.victim,
@@ -282,6 +315,106 @@ class GameEngineService {
 
   async getGameSession(roomCode) {
     return gameSessionService.getSessionByRoomCode(roomCode);
+  }
+
+  validateMapConfig(mapConfig) {
+    if (!mapConfig || typeof mapConfig !== 'object') return false;
+    if (!Array.isArray(mapConfig.rooms) || mapConfig.rooms.length === 0) return false;
+    if (!Array.isArray(mapConfig.cluePlacements) || mapConfig.cluePlacements.length === 0) return false;
+    if (!Array.isArray(mapConfig.suspectSpawns) || mapConfig.suspectSpawns.length === 0) return false;
+
+    for (const room of mapConfig.rooms) {
+      if (typeof room.name !== 'string' || typeof room.x !== 'number' || typeof room.y !== 'number' || typeof room.width !== 'number' || typeof room.height !== 'number') {
+        return false;
+      }
+    }
+
+    for (const placement of mapConfig.cluePlacements) {
+      if (typeof placement.clueName !== 'string' || typeof placement.itemName !== 'string' || typeof placement.x !== 'number' || typeof placement.y !== 'number') {
+        return false;
+      }
+    }
+
+    for (const spawn of mapConfig.suspectSpawns) {
+      if (typeof spawn.suspectName !== 'string' || typeof spawn.x !== 'number' || typeof spawn.y !== 'number') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  getFallbackMapConfig(gameMode) {
+    const templates = {
+      classic_mansion: {
+        rooms: [
+          { name: "Foyer", x: 2, y: 2, width: 12, height: 12 },
+          { name: "Library", x: 16, y: 2, width: 15, height: 12 },
+          { name: "Lounge", x: 33, y: 2, width: 15, height: 12 },
+          { name: "Dining Room", x: 2, y: 16, width: 18, height: 20 },
+          { name: "Study", x: 22, y: 16, width: 26, height: 20 }
+        ],
+        cluePlacements: [
+          { clueName: "Antique Letter Opener", itemName: "Desk", x: 200, y: 150 },
+          { clueName: "Stained Wine Glass", itemName: "Coffee Table", x: 600, y: 150 },
+          { clueName: "Torn Will", itemName: "Safe", x: 1200, y: 150 },
+          { clueName: "Journal Entry", itemName: "Bookshelf", x: 1200, y: 700 },
+          { clueName: "Footprints", itemName: "Fireplace", x: 250, y: 750 },
+          { clueName: "Poison Vial", itemName: "Waste Basket", x: 750, y: 750 }
+        ],
+        suspectSpawns: [
+          { suspectName: "Evelyn Blackwood", x: 250, y: 200 },
+          { suspectName: "Lord Blackwood", x: 650, y: 200 },
+          { suspectName: "Guest 1", x: 1100, y: 200 },
+          { suspectName: "Guest 2", x: 1400, y: 200 }
+        ]
+      },
+      cyber_crime: {
+        rooms: [
+          { name: "Server Room", x: 2, y: 2, width: 14, height: 14 },
+          { name: "Control Center", x: 18, y: 2, width: 14, height: 14 },
+          { name: "Breakroom", x: 34, y: 2, width: 14, height: 14 },
+          { name: "Main Office", x: 2, y: 18, width: 22, height: 18 },
+          { name: "Executive Suite", x: 26, y: 18, width: 22, height: 18 }
+        ],
+        cluePlacements: [
+          { clueName: "Decrypted Flash Drive", itemName: "Laptop", x: 250, y: 200 },
+          { clueName: "Altered Log File", itemName: "Server Rack", x: 650, y: 200 },
+          { clueName: "Discarded Keycard", itemName: "Waste Basket", x: 1200, y: 200 },
+          { clueName: "Threatening Message", itemName: "Desk", x: 400, y: 750 },
+          { clueName: "Security Footage", itemName: "CCTV Terminal", x: 1000, y: 750 }
+        ],
+        suspectSpawns: [
+          { suspectName: "Olivia Kane", x: 300, y: 250 },
+          { suspectName: "Captain Ward", x: 700, y: 250 },
+          { suspectName: "Guest 1", x: 1200, y: 250 },
+          { suspectName: "Guest 2", x: 400, y: 800 }
+        ]
+      },
+      haunted_house: {
+        rooms: [
+          { name: "Great Hall", x: 2, y: 2, width: 16, height: 12 },
+          { name: "Conservatory", x: 20, y: 2, width: 14, height: 12 },
+          { name: "Attic Access", x: 36, y: 2, width: 12, height: 12 },
+          { name: "Parlor", x: 2, y: 16, width: 22, height: 20 },
+          { name: "Basement Stairs", x: 26, y: 16, width: 22, height: 20 }
+        ],
+        cluePlacements: [
+          { clueName: "Strange Talisman", itemName: "Chest", x: 300, y: 200 },
+          { clueName: "Ritual Dagger", itemName: "Altar", x: 700, y: 200 },
+          { clueName: "Spilled Salt", itemName: "Fireplace", x: 1200, y: 200 },
+          { clueName: "Old Diary", itemName: "Bookshelf", x: 400, y: 750 },
+          { clueName: "Cold Spot", itemName: "Rug", x: 1000, y: 750 }
+        ],
+        suspectSpawns: [
+          { suspectName: "Victor North", x: 300, y: 250 },
+          { suspectName: "Madame Sable", x: 700, y: 250 },
+          { suspectName: "Guest 1", x: 1200, y: 250 },
+          { suspectName: "Guest 2", x: 400, y: 800 }
+        ]
+      }
+    };
+    return templates[gameMode] || templates.classic_mansion;
   }
 
   async getPlayerCharacter(roomCode, playerId) {

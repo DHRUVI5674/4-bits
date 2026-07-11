@@ -47,6 +47,7 @@ const evidenceSchema = new mongoose.Schema({
   linkedTimelineEvents: [{ type: String }],
   importance: { type: Number, default: 1, min: 1, max: 10 },
   hidden: { type: Boolean, default: false },
+  isRedHerring: { type: Boolean, default: false },
 }, { _id: false });
 
 const characterSchema = new mongoose.Schema({
@@ -67,6 +68,8 @@ const characterSchema = new mongoose.Schema({
   isMurderer: { type: Boolean, default: false },
   isVictim: { type: Boolean, default: false },
   suspicionScore: { type: Number, default: 0 },
+  actionsRemaining: { type: Number, default: 3 },
+  emergencyMeetingsRemaining: { type: Number, default: 1 },
 }, { _id: false });
 
 const logMessageSchema = new mongoose.Schema({
@@ -125,6 +128,30 @@ const gameSessionSchema = new mongoose.Schema({
   logs: [logMessageSchema],
   votes: [voteSchema],
   finalReveal: { type: String, default: '' },
+  roundNumber: { type: Number, default: 1 },
+  roundTimerEnd: { type: Date, default: null },
+  discussionTimerEnd: { type: Date, default: null },
+  mapConfig: { type: Object, default: null },
+  seatAssignments: {
+    type: Map,
+    of: Number,
+    default: () => new Map(),
+  },
+  votingState: {
+    round: { type: Number, default: 0 },
+    votes: {
+      type: Map,
+      of: String,
+      default: () => new Map(),
+    },
+    resolved: { type: Boolean, default: false },
+    eliminatedId: { type: String, default: null },
+  },
+  voiceParticipants: {
+    type: Map,
+    of: Boolean,
+    default: () => new Map(),
+  },
 
   solution: {
     murdererId: { type: String, required: true },

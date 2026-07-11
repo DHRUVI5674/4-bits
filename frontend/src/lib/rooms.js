@@ -10,6 +10,7 @@ export async function createGame(input) {
       name: input.name,
       mode: input.mode,
       maxMembers: input.maxMembers,
+      revealPolicy: input.revealPolicy,
       hostId: playerId,
       hostName: input.hostName.trim(),
     }),

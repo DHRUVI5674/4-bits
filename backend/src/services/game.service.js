@@ -10,7 +10,7 @@ import gameEngine from '../gameEngine/index.js';
  * @description Business logic for game management.
  */
 
-export const createGame = async (name, mode, maxMembers, hostId, hostName) => {
+export const createGame = async (name, mode, maxMembers, hostId, hostName, revealPolicy = 'immediate') => {
   const roomCode = nanoid(6).toUpperCase();
 
   const gameData = {
@@ -18,6 +18,7 @@ export const createGame = async (name, mode, maxMembers, hostId, hostName) => {
     name,
     mode,
     hostId,
+    revealPolicy,
     settings: {
       maxPlayers: maxMembers,
       minPlayers: 1,
@@ -230,4 +231,8 @@ export const getPlayerCharacter = async (roomCode, playerId) => {
   }
 
   return player.character;
+};
+
+export const updatePlayerPosition = async (roomCode, playerId, { x, y, direction, sceneId }) => {
+  return gameRepository.updatePlayer(roomCode, playerId, { x, y, direction, sceneId });
 };

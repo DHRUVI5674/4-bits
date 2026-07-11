@@ -4,6 +4,7 @@ import gameRepository from '../repositories/game.repository.js';
 import AppError from '../utils/appError.js';
 import { getIO } from '../sockets/socket.js';
 import { GAME_PHASE, GAME_STATUS } from '../constants/game.constants.js';
+import { endRound } from './roundTimer.service.js';
 import { buildNpcQuestionPrompt, buildAccuseNpcPrompt, buildFinalRevealPrompt } from '../prompts/investigation.prompt.js';
 import OllamaService from '../ai/ollama.service.js';
 import GeminiService from '../ai/gemini.service.js';
@@ -124,7 +125,18 @@ class InvestigationService {
     if (!player) throw new AppError('Player not found in room', 404);
 
     const myChar = session.characters.find(c => c.playerId === playerId);
-    const authorName = myChar ? myChar.name : player.name;
+    if (!myChar) throw new AppError('Player character not found', 404);
+
+    if (session.phase !== GAME_PHASE.INVESTIGATION) {
+      throw new AppError('Actions can only be performed during the Investigation Phase', 400);
+    }
+
+    if (myChar.actionsRemaining <= 0) {
+      throw new AppError('You have no actions remaining in this round', 400);
+    }
+
+    myChar.actionsRemaining -= 1;
+    const authorName = myChar.name;
 
     // 1. Build and save the Player Action Message
     const playerMsgText = `[${type.toUpperCase()}] ${target ? '-> ' + target + ' :' : ''} ${content || ''}`;
@@ -259,6 +271,13 @@ class InvestigationService {
 
     // 6. Save State
     await session.save();
+
+    // Trigger round end early if actions hit 0
+    if (myChar.actionsRemaining === 0) {
+      setTimeout(() => {
+        endRound(code, 'actions');
+      }, 1000);
+    }
 
     // 7. Emit update notifications to the Socket room
     const io = getIO();

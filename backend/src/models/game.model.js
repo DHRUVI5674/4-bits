@@ -40,6 +40,22 @@ const playerSchema = new mongoose.Schema({
     relationships: String,
     isMurderer: { type: Boolean, default: false }
   },
+  x: {
+    type: Number,
+    default: 400,
+  },
+  y: {
+    type: Number,
+    default: 300,
+  },
+  direction: {
+    type: String,
+    default: 'down',
+  },
+  sceneId: {
+    type: String,
+    default: 'LobbyScene',
+  },
   joinedAt: {
     type: Date,
     default: Date.now,
@@ -104,6 +120,11 @@ const gameSchema = new mongoose.Schema({
   murderer: {
     type: String,
     default: '',
+  },
+  revealPolicy: {
+    type: String,
+    enum: ['immediate', 'final_only'],
+    default: 'immediate',
   },
   settings: {
     maxPlayers: {
