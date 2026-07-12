@@ -3,8 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import LandingCanvas from "@/components/LandingCanvas";
 import GameCanvas from "@/components/GameCanvas";
 import { getReduceMotion } from "@/lib/preferences";
-import { getStoredName, setStoredName as savePlayerName } from "@/lib/player-id";
-import { ArrowLeft, User } from "lucide-react";
+import { getStoredName, setStoredName as savePlayerName, getAppearance, setAppearance as saveAppearance, DEFAULT_APPEARANCE } from "@/lib/player-id";
+import { ArrowLeft, User, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: Profile
@@ -15,17 +15,46 @@ const SKIN_COLORS = [
   { id: 'fair', value: 0xffcd94, label: 'Fair' },
   { id: 'tan', value: 0xeac086, label: 'Tan' },
   { id: 'brown', value: 0x8d5524, label: 'Brown' },
-  { id: 'dark', value: 0x3d2210, label: 'Dark' },
-  { id: 'noir', value: 0xff0000, label: 'Crimson (Noir)' }, // A stylized red for the noir theme
-  { id: 'ghost', value: 0x6b7280, label: 'Spectral' }
+  { id: 'dark', value: 0x3d2210, label: 'Dark' }
+];
+
+const HAIR_STYLES = [
+  { id: 'hair_short', label: 'Short' },
+  { id: 'hair_slicked', label: 'Slicked' },
+  { id: 'hair_bob', label: 'Bob' },
+  { id: 'hair_long', label: 'Long' },
+  { id: 'hair_none', label: 'Bald' }
+];
+
+const HAIR_COLORS = [
+  { id: 'black', value: 0x111111, label: 'Black' },
+  { id: 'brown', value: 0x451a03, label: 'Brown' },
+  { id: 'blonde', value: 0xd4af37, label: 'Blonde' },
+  { id: 'gray', value: 0x9ca3af, label: 'Gray' }
+];
+
+const OUTFIT_STYLES = [
+  { id: 'outfit_trenchcoat', label: 'Trench Coat' },
+  { id: 'outfit_suit', label: 'Suit' },
+  { id: 'outfit_vest', label: 'Vest' },
+  { id: 'outfit_casual', label: 'Casual' }
+];
+
+const OUTFIT_COLORS = [
+  { id: 'noir_red', value: 0x8a2029, label: 'Noir Red' },
+  { id: 'charcoal', value: 0x333333, label: 'Charcoal' },
+  { id: 'navy', value: 0x1e3a8a, label: 'Navy' },
+  { id: 'olive', value: 0x3f6212, label: 'Olive' },
+  { id: 'beige', value: 0xd4d4d8, label: 'Beige' }
 ];
 
 function Profile() {
   const navigate = useNavigate();
   const [reduceMotionGlobal, setReduceMotionGlobal] = useState(false);
   const [displayName, setDisplayName] = useState("");
-  const [skinColor, setSkinColor] = useState(SKIN_COLORS[0].value);
+  const [appearance, setAppearanceState] = useState(DEFAULT_APPEARANCE);
   const [isSaving, setIsSaving] = useState(false);
+  const [direction, setDirection] = useState(0); // 0=Down, 1=Left, 2=Right, 3=Up
 
   // Fake socket just to satisfy GameCanvas prop validation if necessary
   const fakeSocket = useRef({ on: () => {}, emit: () => {}, off: () => {} }).current;
@@ -33,24 +62,28 @@ function Profile() {
   useEffect(() => {
     setReduceMotionGlobal(getReduceMotion());
     setDisplayName(getStoredName());
-    
-    const savedColor = window.localStorage.getItem("tlw:player-color");
-    if (savedColor) {
-      setSkinColor(parseInt(savedColor, 10));
-    }
+    setAppearanceState(getAppearance());
   }, []);
 
   const handleSave = (e) => {
     e.preventDefault();
     setIsSaving(true);
     savePlayerName(displayName || "Investigator");
-    window.localStorage.setItem("tlw:player-color", skinColor.toString());
+    saveAppearance(appearance);
     
     // Simulate a brief save effect
     setTimeout(() => {
       setIsSaving(false);
       navigate({ to: "/" });
     }, 400);
+  };
+
+  const updateApp = (key, val) => {
+    setAppearanceState(prev => ({ ...prev, [key]: val }));
+  };
+
+  const cycleDirection = () => {
+    setDirection(prev => (prev + 1) % 4);
   };
 
   return (
@@ -74,33 +107,36 @@ function Profile() {
               VISUAL IDENTIFICATION
             </div>
             
-            <div className="w-full h-full relative overflow-hidden bg-[#151314] border-4 border-[#1a1113] shadow-inner">
+            <div className="w-full h-[300px] relative overflow-hidden bg-[#151314] border-4 border-[#1a1113] shadow-inner mb-4">
               <GameCanvas 
                 sceneKey="ProfileScene" 
                 socket={fakeSocket} 
                 roomCode="PROFILE" 
                 playerId="me" 
                 players={[{ playerId: "me", name: displayName }]} 
-                customRegistry={{ skinColor }}
+                customRegistry={{ ...appearance, direction }}
               />
             </div>
+            
+            <button 
+              type="button" 
+              onClick={cycleDirection}
+              className="flex items-center gap-2 font-['VT323'] text-xl text-stone-300 hover:text-white transition-colors bg-[#1a1113] px-4 py-2 border-2 border-stone-800 shadow-md"
+            >
+              <RefreshCw className="w-4 h-4" /> TURN CHARACTER
+            </button>
           </div>
 
           {/* Customization Form */}
-          <div className="w-full lg:w-[400px] border-4 border-[#1a1113] bg-[#0a0809]/95 p-6 md:p-8 shadow-[15px_15px_0px_rgba(0,0,0,0.8)] relative">
-            <div className="absolute top-0 left-8 px-4 py-0.5 bg-stone-800/80 border-b border-stone-950 font-['VT323'] text-sm text-stone-400 select-none tracking-widest">
+          <div className="w-full lg:w-[450px] border-4 border-[#1a1113] bg-[#0a0809]/95 p-6 md:p-8 shadow-[15px_15px_0px_rgba(0,0,0,0.8)] relative max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="absolute top-0 left-8 px-4 py-0.5 bg-stone-800/80 border-b border-stone-950 font-['VT323'] text-sm text-stone-400 select-none tracking-widest z-10">
               DOSSIER FILE
             </div>
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[color:var(--color-accent-blood)] to-transparent opacity-40 animate-pulse" />
-
-            <form onSubmit={handleSave} className="flex flex-col h-full justify-between">
-              <div>
-                <h1 className="font-['VT323'] text-4xl text-white drop-shadow-md mb-8 mt-2 border-b-2 border-[#1a1113] pb-2">
-                  Investigator Profile
-                </h1>
-
+            
+            <form onSubmit={handleSave} className="flex flex-col h-full mt-4">
+              <div className="flex-1">
                 {/* Display Name */}
-                <div className="relative group mb-8">
+                <div className="relative group mb-6">
                   <div className="flex items-center gap-2 mb-1.5">
                     <User className="w-4 h-4 text-red-600" />
                     <span className="font-['VT323'] text-lg tracking-widest text-red-300/60">
@@ -119,18 +155,80 @@ function Profile() {
                   />
                 </div>
 
-                {/* Skin Color Swatches */}
-                <div className="mb-8">
-                  <span className="font-['VT323'] text-lg tracking-widest text-red-300/60 block mb-3">
-                    APPEARANCE / TINT
+                {/* Skin Tone */}
+                <div className="mb-6">
+                  <span className="font-['VT323'] text-lg tracking-widest text-red-300/60 block mb-2">
+                    SKIN TONE
                   </span>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     {SKIN_COLORS.map(color => (
                       <button
                         key={color.id}
                         type="button"
-                        onClick={() => setSkinColor(color.value)}
-                        className={`w-10 h-10 border-4 transition-transform ${skinColor === color.value ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'border-[#1a1113] hover:scale-105'}`}
+                        onClick={() => updateApp('skinTone', color.value)}
+                        className={`w-8 h-8 border-2 transition-transform ${appearance.skinTone === color.value ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'border-[#1a1113] hover:scale-105'}`}
+                        style={{ backgroundColor: '#' + color.value.toString(16).padStart(6, '0') }}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Hair Style */}
+                <div className="mb-6">
+                  <span className="font-['VT323'] text-lg tracking-widest text-red-300/60 block mb-2">
+                    HAIR STYLE
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {HAIR_STYLES.map(style => (
+                      <button
+                        key={style.id}
+                        type="button"
+                        onClick={() => updateApp('hairStyle', style.id)}
+                        className={`font-['VT323'] px-3 py-1 text-lg border-2 transition-colors ${appearance.hairStyle === style.id ? 'bg-[#8a2029] border-[#8a2029] text-white' : 'bg-transparent border-[#1a1113] text-stone-400 hover:border-stone-600'}`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {HAIR_COLORS.map(color => (
+                      <button
+                        key={color.id}
+                        type="button"
+                        onClick={() => updateApp('hairColor', color.value)}
+                        className={`w-6 h-6 border-2 transition-transform ${appearance.hairColor === color.value ? 'border-white scale-110' : 'border-[#1a1113] hover:scale-105'}`}
+                        style={{ backgroundColor: '#' + color.value.toString(16).padStart(6, '0') }}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Outfit Style */}
+                <div className="mb-8">
+                  <span className="font-['VT323'] text-lg tracking-widest text-red-300/60 block mb-2">
+                    OUTFIT STYLE
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {OUTFIT_STYLES.map(style => (
+                      <button
+                        key={style.id}
+                        type="button"
+                        onClick={() => updateApp('outfit', style.id)}
+                        className={`font-['VT323'] px-3 py-1 text-lg border-2 transition-colors ${appearance.outfit === style.id ? 'bg-[#8a2029] border-[#8a2029] text-white' : 'bg-transparent border-[#1a1113] text-stone-400 hover:border-stone-600'}`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {OUTFIT_COLORS.map(color => (
+                      <button
+                        key={color.id}
+                        type="button"
+                        onClick={() => updateApp('outfitColor', color.value)}
+                        className={`w-6 h-6 border-2 transition-transform ${appearance.outfitColor === color.value ? 'border-white scale-110' : 'border-[#1a1113] hover:scale-105'}`}
                         style={{ backgroundColor: '#' + color.value.toString(16).padStart(6, '0') }}
                         title={color.label}
                       />
@@ -142,7 +240,7 @@ function Profile() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className={`w-full font-['VT323'] px-6 py-4 text-3xl transition-colors border-4 relative shadow-[inset_-2px_-2px_0px_rgba(0,0,0,0.5),inset_2px_2px_0px_rgba(255,255,255,0.2)] ${
+                className={`w-full font-['VT323'] px-6 py-4 text-3xl transition-colors border-4 mt-4 relative shadow-[inset_-2px_-2px_0px_rgba(0,0,0,0.5),inset_2px_2px_0px_rgba(255,255,255,0.2)] flex-shrink-0 ${
                   isSaving 
                     ? "bg-[#151314] border-[#1a1113] text-stone-600" 
                     : "bg-[#8a2029] border-[#1a1113] text-white hover:bg-[#a62631]"
@@ -155,6 +253,23 @@ function Profile() {
 
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #0a0809; 
+          border-left: 1px solid #1a1113;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #1a1113; 
+          border: 1px solid #2a1113;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #8a2029; 
+        }
+      `}} />
     </main>
   );
 }
+

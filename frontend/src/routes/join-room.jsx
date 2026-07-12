@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { joinRoom } from "@/lib/rooms";
-import { getStoredName, setStoredName } from "@/lib/player-id";
+import { getStoredName, setStoredName, getAppearance } from "@/lib/player-id";
 
 import LandingCanvas from "@/components/LandingCanvas";
 import { getReduceMotion } from "@/lib/preferences";
@@ -32,7 +32,7 @@ function JoinRoom() {
     setError(null);
     try {
       setStoredName(name.trim());
-      const result = await joinRoom({ code, name });
+      const result = await joinRoom({ code, name, appearance: getAppearance() });
       if (!result.ok) {
         setError(ERROR_COPY[result.error]);
         setSubmitting(false);

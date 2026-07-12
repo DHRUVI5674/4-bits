@@ -387,9 +387,11 @@ export default class InvestigationScene extends Phaser.Scene {
     const isLocal = pId === this.playerId;
     const spawnX = p.x || 800;
     const spawnY = p.y || 600;
-    const tintColor = this.getColorFromId(pId);
 
-    const playerSprite = new Player(this, spawnX, spawnY, pId, p.name || 'Unknown', isLocal, tintColor);
+    const fallbackColor = this.getColorFromId(pId);
+    const appearance = p.appearance || { skinTone: fallbackColor, outfit: 'outfit_trenchcoat', outfitColor: fallbackColor };
+
+    const playerSprite = new Player(this, spawnX, spawnY, pId, p.name || 'Unknown', isLocal, appearance);
     playerSprite.hideReadyStatus();
 
     // Collide with tilemap walls and furniture

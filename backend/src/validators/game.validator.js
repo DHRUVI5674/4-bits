@@ -17,6 +17,10 @@ export const createGameValidator = [
     .trim()
     .notEmpty()
     .withMessage('Host ID is required'),
+  body('appearance')
+    .optional()
+    .isObject()
+    .withMessage('Appearance must be an object'),
   body('mode')
     .optional()
     .isString(),
@@ -52,6 +56,10 @@ export const joinGameValidator = [
     .trim()
     .notEmpty()
     .withMessage('Player ID is required'),
+  body('appearance')
+    .optional()
+    .isObject()
+    .withMessage('Appearance must be an object'),
 ];
 
 export const roomIdValidator = [

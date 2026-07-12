@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createRoom, MODE_LABELS } from "@/lib/rooms";
-import { setStoredName, getStoredName } from "@/lib/player-id";
+import { setStoredName, getStoredName, getAppearance } from "@/lib/player-id";
 import { FileText, User, Users, Compass, ShieldAlert, ArrowLeft, Plus } from "lucide-react";
 import LandingCanvas from "@/components/LandingCanvas";
 import { getReduceMotion } from "@/lib/preferences";
@@ -40,7 +40,8 @@ function CreateRoom() {
         maxRounds,
         roundDurationMinutes,
         revealPolicy,
-        hostName: hostName.trim()
+        hostName: hostName.trim(),
+        appearance: getAppearance()
       });
       navigate({ to: "/lobby/$code", params: { code } });
     } catch (err) {

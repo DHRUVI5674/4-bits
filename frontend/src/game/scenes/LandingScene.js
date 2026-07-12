@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { generateGameTextures } from '../utils/textureGenerator';
 import { buildTilemapJSON } from '../utils/mapBuilder';
 import { mansionMap } from '../maps/mansionMap';
+import PlayerSprite, { registerPlayerAnimations } from '../entities/PlayerSprite';
 
 export default class LandingScene extends Phaser.Scene {
   constructor() {
@@ -15,13 +16,8 @@ export default class LandingScene extends Phaser.Scene {
   }
 
   create() {
-    // Walk Animations (used for idle/emotes)
-    if (!this.anims.exists('walk_down')) {
-      this.anims.create({ key: 'walk_down', frames: this.anims.generateFrameNumbers('character_spritesheet', { start: 0, end: 2 }), frameRate: 8, repeat: -1 });
-      this.anims.create({ key: 'walk_left', frames: this.anims.generateFrameNumbers('character_spritesheet', { start: 3, end: 5 }), frameRate: 8, repeat: -1 });
-      this.anims.create({ key: 'walk_right', frames: this.anims.generateFrameNumbers('character_spritesheet', { start: 6, end: 8 }), frameRate: 8, repeat: -1 });
-      this.anims.create({ key: 'walk_up', frames: this.anims.generateFrameNumbers('character_spritesheet', { start: 9, end: 11 }), frameRate: 8, repeat: -1 });
-    }
+    // Register layered animations
+    registerPlayerAnimations(this.anims);
 
     // Load Map
     const map = this.make.tilemap({ key: 'landing_map' });
@@ -63,9 +59,15 @@ export default class LandingScene extends Phaser.Scene {
     ];
 
     positions.forEach((pos, i) => {
-      const sprite = this.add.sprite(pos.x, pos.y, 'character_spritesheet');
-      sprite.setTint(colors[i]);
-      sprite.play(pos.dir);
+      // Create random appearances for the dancing characters
+      const apps = [
+        { skinTone: 0xffcd94, outfit: 'outfit_trenchcoat', outfitColor: 0x8a2029, hairStyle: 'hair_slicked', hairColor: 0x451a03 },
+        { skinTone: 0x8d5524, outfit: 'outfit_vest', outfitColor: 0x1e293b, hairStyle: 'hair_short', hairColor: 0x000000 },
+        { skinTone: 0xffe0bd, outfit: 'outfit_casual', outfitColor: 0x047857, hairStyle: 'hair_bob', hairColor: 0xca8a04 }
+      ];
+      
+      const sprite = new PlayerSprite(this, pos.x, pos.y, apps[i]);
+      sprite.playAnim(pos.dir);
       if (pos.flip) sprite.setFlipX(true);
 
       // Rhythmic "dance" tween (smooth bobbing and gentle rotation instead of rapid flipping)

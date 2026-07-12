@@ -122,15 +122,24 @@ export default class LobbyScene extends Phaser.Scene {
       // Center camera on lobby center
       this.cameras.main.centerOn(800, 600);
 
-      // Spawn 3 autonomous dummy players wandering in the background (Blue, Orange, Red)
+      // Spawn 3 autonomous dummy players wandering in the background
       const dummyData = [
-        { playerId: 'dummy-blue', name: 'Investigator Blue', tint: 0x3b82f6, x: 800, y: 600 },
-        { playerId: 'dummy-orange', name: 'Investigator Orange', tint: 0xf59e0b, x: 720, y: 550 },
-        { playerId: 'dummy-red', name: 'Investigator Red', tint: 0xef4444, x: 880, y: 650 }
+        { 
+          playerId: 'dummy-1', name: 'Investigator Blue', x: 800, y: 600,
+          appearance: { skinTone: 0xffcd94, outfit: 'outfit_trenchcoat', outfitColor: 0x1e3a8a, hairStyle: 'hair_slicked', hairColor: 0x451a03 }
+        },
+        { 
+          playerId: 'dummy-2', name: 'Investigator Orange', x: 720, y: 550,
+          appearance: { skinTone: 0x8d5524, outfit: 'outfit_vest', outfitColor: 0xf59e0b, hairStyle: 'hair_short', hairColor: 0x000000 }
+        },
+        { 
+          playerId: 'dummy-3', name: 'Investigator Red', x: 880, y: 650,
+          appearance: { skinTone: 0xffe0bd, outfit: 'outfit_casual', outfitColor: 0xef4444, hairStyle: 'hair_bob', hairColor: 0xca8a04 }
+        }
       ];
 
       dummyData.forEach(d => {
-        const playerSprite = new Player(this, d.x, d.y, d.playerId, d.name, false, d.tint);
+        const playerSprite = new Player(this, d.x, d.y, d.playerId, d.name, false, d.appearance);
         playerSprite.setScale(2.5); // Make characters bigger for background aesthetic
         playerSprite.hideReadyStatus();
         if (this.wallsLayer) {
@@ -177,8 +186,6 @@ export default class LobbyScene extends Phaser.Scene {
     if (this.cursors.up.isDown || this.wasd.up.isDown) vy = -speed;
     else if (this.cursors.down.isDown || this.wasd.down.isDown) vy = speed;
 
-    // Joystick input processing removed
-
     // 3. Apply Local Movement
     this.localPlayer.move(vx, vy);
 
@@ -223,9 +230,10 @@ export default class LobbyScene extends Phaser.Scene {
     const spawnY = p.y || 600;
 
     // Use a unique colored tint color based on the hash of their ID
-    const tintColor = this.getColorFromId(id);
+    const fallbackColor = this.getColorFromId(id);
+    const appearance = p.appearance || { skinTone: fallbackColor, outfit: 'outfit_trenchcoat', outfitColor: fallbackColor };
 
-    const playerSprite = new Player(this, spawnX, spawnY, id, p.name, isLocal, tintColor);
+    const playerSprite = new Player(this, spawnX, spawnY, id, p.name, isLocal, appearance);
     playerSprite.setReadyStatus(p.isReady);
 
     // Collide with tilemap walls

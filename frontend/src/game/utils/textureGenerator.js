@@ -1,76 +1,240 @@
 export function generateGameTextures(scene) {
   // 1. Generate Character Walk Spritesheet (32x48 frames, 3 frames per dir, 4 dirs)
   // Directions: 0 = Down, 1 = Left, 2 = Right, 3 = Up
-  if (!scene.textures.exists('character_spritesheet')) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 96;  // 3 frames * 32px
-    canvas.height = 192; // 4 directions * 48px
-    const ctx = canvas.getContext('2d');
+  // 1. Generate Modular Character Walk Spritesheets (32x48 frames, 3 frames per dir, 4 dirs)
+  // We draw at 16x24 logic size and scale up by 2 to get crisp 2px "pixels".
+  const generateSpriteLayer = (key, drawFunction) => {
+    if (!scene.textures.exists(key)) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 96;  // 3 * 32
+      canvas.height = 192; // 4 * 48
+      const ctx = canvas.getContext('2d');
+      // No antialiasing for crisp pixels
+      ctx.imageSmoothingEnabled = false;
 
-    const drawCharFrame = (ctx, fx, fy, dir, frameNum) => {
-      ctx.save();
-      ctx.translate(fx * 32, fy * 48);
+      for (let dir = 0; dir < 4; dir++) {
+        for (let frameNum = 0; frameNum < 3; frameNum++) {
+          ctx.save();
+          ctx.translate(frameNum * 32, dir * 48);
+          ctx.scale(2, 2); // 16x24 coordinate system per frame
 
-      // Body
-      ctx.fillStyle = '#ffffff'; 
-      ctx.beginPath();
-      ctx.roundRect(8, 20, 16, 20, 4);
-      ctx.fill();
-
-      // Head
-      ctx.fillStyle = '#fbcfe8'; 
-      ctx.beginPath();
-      ctx.arc(16, 12, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Hair
-      ctx.fillStyle = '#451a03';
-      ctx.beginPath();
-      ctx.arc(16, 10, 8, Math.PI, 0);
-      ctx.fill();
-
-      // Eyes (looking in direction)
-      ctx.fillStyle = '#000000';
-      if (dir === 0) { // Down
-        ctx.fillRect(12, 10, 2, 2);
-        ctx.fillRect(18, 10, 2, 2);
-      } else if (dir === 1) { // Left
-        ctx.fillRect(9, 10, 2, 2);
-        ctx.fillRect(13, 10, 2, 2);
-      } else if (dir === 2) { // Right
-        ctx.fillRect(17, 10, 2, 2);
-        ctx.fillRect(21, 10, 2, 2);
-      } // dir === 3 is Up (no eyes)
-
-      // Legs / Walking animation
-      ctx.fillStyle = '#1e293b'; // Pants
-      let leftLegY = 40;
-      let rightLegY = 40;
-      if (frameNum === 1) {
-        leftLegY = 36;
-        rightLegY = 44;
-      } else if (frameNum === 2) {
-        leftLegY = 44;
-        rightLegY = 36;
+          // Call the specific draw function for this layer/dir/frame
+          drawFunction(ctx, dir, frameNum);
+          
+          ctx.restore();
+        }
       }
 
-      ctx.fillRect(10, 40, 5, leftLegY - 40 + 6); // Left leg
-      ctx.fillRect(17, 40, 5, rightLegY - 40 + 6); // Right leg
+      scene.textures.addSpriteSheet(key, canvas, { frameWidth: 32, frameHeight: 48 });
+    }
+  };
 
-      ctx.restore();
-    };
+  // Helper to draw a pixel-perfect rectangle
+  const pxRect = (ctx, x, y, w, h, color) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
+  };
 
-    for (let dir = 0; dir < 4; dir++) {
-      for (let frame = 0; frame < 3; frame++) {
-        drawCharFrame(ctx, frame, dir, dir, frame);
-      }
+  const OUTLINE = '#110b0d'; // Noir dark outline
+  
+  // --- BASE BODY LAYER ---
+  generateSpriteLayer('base_body', (ctx, dir, frameNum) => {
+    // Basic body colors (white default, tintable in-game)
+    const BASE = '#ffffff';
+    const SHADE = '#cccccc';
+
+    // Bobbing offset
+    const yOff = (frameNum !== 0) ? -1 : 0;
+
+    // Legs animation
+    let leftLegY = 16, rightLegY = 16;
+    if (frameNum === 1) { leftLegY = 15; rightLegY = 17; }
+    else if (frameNum === 2) { leftLegY = 17; rightLegY = 15; }
+
+    // LEGS
+    if (dir === 1) { // Left
+      pxRect(ctx, 6, leftLegY, 3, 7, OUTLINE);
+      pxRect(ctx, 7, leftLegY, 1, 6, SHADE);
+    } else if (dir === 2) { // Right
+      pxRect(ctx, 7, rightLegY, 3, 7, OUTLINE);
+      pxRect(ctx, 8, rightLegY, 1, 6, SHADE);
+    } else { // Down/Up
+      pxRect(ctx, 4, leftLegY, 3, 7, OUTLINE);
+      pxRect(ctx, 5, leftLegY, 1, 6, SHADE);
+      pxRect(ctx, 9, rightLegY, 3, 7, OUTLINE);
+      pxRect(ctx, 10, rightLegY, 1, 6, SHADE);
     }
 
-    scene.textures.addSpriteSheet('character_spritesheet', canvas, {
-      frameWidth: 32,
-      frameHeight: 48
-    });
-  }
+    // BODY & ARMS
+    if (dir === 1 || dir === 2) { // Side view
+      // Back Arm
+      pxRect(ctx, 6, 9 + yOff, 4, 7, OUTLINE);
+      pxRect(ctx, 7, 10 + yOff, 2, 5, SHADE);
+      // Torso
+      pxRect(ctx, 4, 8 + yOff, 8, 9, OUTLINE);
+      pxRect(ctx, 5, 9 + yOff, 6, 7, BASE);
+      pxRect(ctx, 8, 9 + yOff, 2, 7, SHADE); // Shading on back
+      // Front Arm (swinging)
+      let armY = 9 + yOff;
+      pxRect(ctx, 5, armY, 4, 7, OUTLINE);
+      pxRect(ctx, 6, armY+1, 2, 5, BASE);
+    } else { // Front / Back
+      // Arms
+      pxRect(ctx, 2, 9 + yOff, 3, 7, OUTLINE);
+      pxRect(ctx, 3, 10 + yOff, 1, 5, BASE);
+      pxRect(ctx, 11, 9 + yOff, 3, 7, OUTLINE);
+      pxRect(ctx, 12, 10 + yOff, 1, 5, SHADE);
+      // Torso
+      pxRect(ctx, 4, 8 + yOff, 8, 9, OUTLINE);
+      pxRect(ctx, 5, 9 + yOff, 6, 7, BASE);
+      pxRect(ctx, 9, 9 + yOff, 2, 7, SHADE); // Right side shade
+    }
+
+    // HEAD
+    pxRect(ctx, 3, 1 + yOff, 10, 8, OUTLINE);
+    pxRect(ctx, 4, 2 + yOff, 8, 6, BASE);
+    pxRect(ctx, 9, 2 + yOff, 3, 6, SHADE); // Right side shade
+
+    // FACE / EYES (Only front and sides)
+    if (dir === 0) { // Front
+      pxRect(ctx, 5, 4 + yOff, 2, 2, OUTLINE); // L Eye
+      pxRect(ctx, 9, 4 + yOff, 2, 2, OUTLINE); // R Eye
+    } else if (dir === 1) { // Left
+      pxRect(ctx, 4, 4 + yOff, 2, 2, OUTLINE); 
+    } else if (dir === 2) { // Right
+      pxRect(ctx, 10, 4 + yOff, 2, 2, OUTLINE);
+    }
+  });
+
+  // --- OUTFIT LAYERS ---
+  const drawTrenchcoat = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff'; // Tintable
+    const SHADE = '#cccccc';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    
+    if (dir === 0 || dir === 3) {
+      pxRect(ctx, 3, 8 + yOff, 10, 11, OUTLINE);
+      pxRect(ctx, 4, 9 + yOff, 8, 9, COLOR);
+      pxRect(ctx, 10, 9 + yOff, 2, 9, SHADE);
+      if (dir === 0) { // Open collar
+        pxRect(ctx, 7, 9 + yOff, 2, 4, '#000000');
+      }
+    } else {
+      pxRect(ctx, 4, 8 + yOff, 8, 11, OUTLINE);
+      pxRect(ctx, 5, 9 + yOff, 6, 9, COLOR);
+      pxRect(ctx, 9, 9 + yOff, 2, 9, SHADE);
+    }
+  };
+
+  const drawVest = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff'; 
+    const SHADE = '#cccccc';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    if (dir === 0 || dir === 3) {
+      pxRect(ctx, 4, 8 + yOff, 8, 7, OUTLINE);
+      pxRect(ctx, 5, 9 + yOff, 6, 5, COLOR);
+      pxRect(ctx, 9, 9 + yOff, 2, 5, SHADE);
+      if (dir === 0) { // Vest V-neck
+        pxRect(ctx, 7, 9 + yOff, 2, 3, '#000000');
+        pxRect(ctx, 7, 13 + yOff, 2, 1, '#110b0d'); // Button
+      }
+    } else {
+      pxRect(ctx, 5, 8 + yOff, 6, 7, OUTLINE);
+      pxRect(ctx, 6, 9 + yOff, 4, 5, COLOR);
+    }
+  };
+  
+  const drawCasual = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff'; 
+    const SHADE = '#cccccc';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    if (dir === 0 || dir === 3) {
+      pxRect(ctx, 3, 8 + yOff, 10, 7, OUTLINE);
+      pxRect(ctx, 4, 9 + yOff, 8, 5, COLOR);
+      pxRect(ctx, 10, 9 + yOff, 2, 5, SHADE);
+    } else {
+      pxRect(ctx, 4, 8 + yOff, 8, 7, OUTLINE);
+      pxRect(ctx, 5, 9 + yOff, 6, 5, COLOR);
+      pxRect(ctx, 9, 9 + yOff, 2, 5, SHADE);
+    }
+  };
+
+  const drawSuit = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff'; 
+    const SHADE = '#cccccc';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    
+    // Suit jacket
+    if (dir === 0 || dir === 3) {
+      pxRect(ctx, 3, 8 + yOff, 10, 9, OUTLINE);
+      pxRect(ctx, 4, 9 + yOff, 8, 7, COLOR);
+      pxRect(ctx, 10, 9 + yOff, 2, 7, SHADE);
+      if (dir === 0) { // Tie
+        pxRect(ctx, 7, 9 + yOff, 2, 5, '#110b0d');
+      }
+    } else {
+      pxRect(ctx, 4, 8 + yOff, 8, 9, OUTLINE);
+      pxRect(ctx, 5, 9 + yOff, 6, 7, COLOR);
+      pxRect(ctx, 9, 9 + yOff, 2, 7, SHADE);
+    }
+  };
+
+  generateSpriteLayer('outfit_trenchcoat', drawTrenchcoat);
+  generateSpriteLayer('outfit_vest', drawVest);
+  generateSpriteLayer('outfit_casual', drawCasual);
+  generateSpriteLayer('outfit_suit', drawSuit);
+  generateSpriteLayer('outfit_none', () => {}); // Empty layer
+
+  // --- HAIR LAYERS ---
+  const drawHairShort = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    if (dir === 0 || dir === 1 || dir === 2) {
+      pxRect(ctx, 3, 0 + yOff, 10, 4, OUTLINE);
+      pxRect(ctx, 4, 1 + yOff, 8, 2, COLOR);
+    } else if (dir === 3) { // Back
+      pxRect(ctx, 3, 0 + yOff, 10, 7, OUTLINE);
+      pxRect(ctx, 4, 1 + yOff, 8, 5, COLOR);
+    }
+  };
+
+  const drawHairSlicked = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    pxRect(ctx, 2, 0 + yOff, 12, 4, OUTLINE);
+    pxRect(ctx, 3, 1 + yOff, 10, 2, COLOR);
+    if (dir === 3) {
+      pxRect(ctx, 3, 3 + yOff, 10, 4, OUTLINE);
+      pxRect(ctx, 4, 4 + yOff, 8, 2, COLOR);
+    }
+  };
+
+  const drawHairBob = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    pxRect(ctx, 2, 0 + yOff, 12, 8, OUTLINE);
+    pxRect(ctx, 3, 1 + yOff, 10, 6, COLOR);
+    // Cut out face for front
+    if (dir === 0) pxRect(ctx, 4, 3 + yOff, 8, 6, 'rgba(0,0,0,0)'); // transparent cutout
+  };
+  
+  const drawHairLong = (ctx, dir, frameNum) => {
+    const COLOR = '#ffffff';
+    const yOff = (frameNum !== 0) ? -1 : 0;
+    pxRect(ctx, 2, 0 + yOff, 12, 10, OUTLINE);
+    pxRect(ctx, 3, 1 + yOff, 10, 8, COLOR);
+    if (dir === 0) { // Frame the face
+      pxRect(ctx, 4, 3 + yOff, 8, 8, 'rgba(0,0,0,0)');
+      pxRect(ctx, 2, 1 + yOff, 2, 10, OUTLINE); // Front side locks
+      pxRect(ctx, 12, 1 + yOff, 2, 10, OUTLINE);
+      pxRect(ctx, 3, 2 + yOff, 1, 8, COLOR);
+      pxRect(ctx, 12, 2 + yOff, 1, 8, COLOR);
+    }
+  };
+
+  generateSpriteLayer('hair_short', drawHairShort);
+  generateSpriteLayer('hair_slicked', drawHairSlicked);
+
 
   // 2. Generate 36-Tile Spritesheet (256x192px = 8x6 grid of 32x32 tiles)
   if (!scene.textures.exists('mansion_tiles')) {

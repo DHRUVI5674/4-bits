@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as JoinRoomRouteImport } from './routes/join-room'
 import { Route as CreateRoomRouteImport } from './routes/create-room'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +18,16 @@ import { Route as LobbyCodeRouteImport } from './routes/lobby.$code'
 import { Route as InvestigationCodeRouteImport } from './routes/investigation.$code'
 import { Route as CharacterDossierCodeRouteImport } from './routes/character-dossier.$code'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinRoomRoute = JoinRoomRouteImport.update({
   id: '/join-room',
   path: '/join-room',
@@ -51,6 +63,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create-room': typeof CreateRoomRoute
   '/join-room': typeof JoinRoomRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/character-dossier/$code': typeof CharacterDossierCodeRoute
   '/investigation/$code': typeof InvestigationCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
@@ -59,6 +73,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create-room': typeof CreateRoomRoute
   '/join-room': typeof JoinRoomRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/character-dossier/$code': typeof CharacterDossierCodeRoute
   '/investigation/$code': typeof InvestigationCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
@@ -68,6 +84,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create-room': typeof CreateRoomRoute
   '/join-room': typeof JoinRoomRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/character-dossier/$code': typeof CharacterDossierCodeRoute
   '/investigation/$code': typeof InvestigationCodeRoute
   '/lobby/$code': typeof LobbyCodeRoute
@@ -78,6 +96,8 @@ export interface FileRouteTypes {
     | '/'
     | '/create-room'
     | '/join-room'
+    | '/profile'
+    | '/settings'
     | '/character-dossier/$code'
     | '/investigation/$code'
     | '/lobby/$code'
@@ -86,6 +106,8 @@ export interface FileRouteTypes {
     | '/'
     | '/create-room'
     | '/join-room'
+    | '/profile'
+    | '/settings'
     | '/character-dossier/$code'
     | '/investigation/$code'
     | '/lobby/$code'
@@ -94,6 +116,8 @@ export interface FileRouteTypes {
     | '/'
     | '/create-room'
     | '/join-room'
+    | '/profile'
+    | '/settings'
     | '/character-dossier/$code'
     | '/investigation/$code'
     | '/lobby/$code'
@@ -103,6 +127,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoomRoute: typeof CreateRoomRoute
   JoinRoomRoute: typeof JoinRoomRoute
+  ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
   CharacterDossierCodeRoute: typeof CharacterDossierCodeRoute
   InvestigationCodeRoute: typeof InvestigationCodeRoute
   LobbyCodeRoute: typeof LobbyCodeRoute
@@ -110,6 +136,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join-room': {
       id: '/join-room'
       path: '/join-room'
@@ -159,6 +199,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoomRoute: CreateRoomRoute,
   JoinRoomRoute: JoinRoomRoute,
+  ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
   CharacterDossierCodeRoute: CharacterDossierCodeRoute,
   InvestigationCodeRoute: InvestigationCodeRoute,
   LobbyCodeRoute: LobbyCodeRoute,

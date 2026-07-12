@@ -10,7 +10,7 @@ import gameEngine from '../gameEngine/index.js';
  * @description Business logic for game management.
  */
 
-export const createGame = async (name, mode, maxMembers, hostId, hostName, revealPolicy = 'immediate', maxRounds = 3, roundDurationMinutes = 2) => {
+export const createGame = async (name, mode, maxMembers, hostId, hostName, appearance, revealPolicy = 'immediate', maxRounds = 3, roundDurationMinutes = 2) => {
   const roomCode = nanoid(6).toUpperCase();
 
   const gameData = {
@@ -28,6 +28,7 @@ export const createGame = async (name, mode, maxMembers, hostId, hostName, revea
     players: [{
       playerId: hostId,
       name: hostName,
+      appearance: appearance || null,
       isHost: true,
       isReady: true,
       isConnected: false // Socket will connect later
@@ -47,7 +48,7 @@ export const getGameByCode = async (roomCode) => {
   return game;
 };
 
-export const joinGame = async (roomCode, playerId, playerName) => {
+export const joinGame = async (roomCode, playerId, playerName, appearance) => {
   const game = await gameRepository.findByCode(roomCode);
 
   if (!game) {
@@ -69,12 +70,14 @@ export const joinGame = async (roomCode, playerId, playerName) => {
 
   const existingPlayerIndex = game.players.findIndex(p => p.playerId === playerId);
   if (existingPlayerIndex >= 0) {
-    // Player is rejoining, update their name if it changed
+    // Player is rejoining, update their name and appearance
     game.players[existingPlayerIndex].name = playerName;
+    if (appearance) game.players[existingPlayerIndex].appearance = appearance;
   } else {
     game.players.push({
       playerId,
       name: playerName,
+      appearance: appearance || null,
       isHost: false,
       isReady: false,
       isConnected: false
