@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import LandingCanvas from "@/components/LandingCanvas";
 import GameCanvas from "@/components/GameCanvas";
 import { getReduceMotion } from "@/lib/preferences";
-import { getPlayerName, setPlayerName as savePlayerName } from "@/lib/player-id";
+import { getStoredName, setStoredName as savePlayerName } from "@/lib/player-id";
 import { ArrowLeft, User } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
@@ -32,7 +32,7 @@ function Profile() {
 
   useEffect(() => {
     setReduceMotionGlobal(getReduceMotion());
-    setDisplayName(getPlayerName());
+    setDisplayName(getStoredName());
     
     const savedColor = window.localStorage.getItem("tlw:player-color");
     if (savedColor) {
