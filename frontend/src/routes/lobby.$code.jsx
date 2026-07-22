@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { io } from "socket.io-client";
+import { getSocket, disconnectSocket } from "@/lib/socket";
 import {
   beginInvestigation,
   getRoomByCode,
@@ -58,10 +58,7 @@ function Lobby() {
   useEffect(() => {
     if (!room || !playerId) return;
 
-    const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
-    const sock = io(API_BASE, {
-      auth: { roomCode: code, playerId }
-    });
+    const sock = getSocket(code, playerId);
     socketRef.current = sock;
     setSocket(sock);
 
@@ -103,7 +100,7 @@ function Lobby() {
     });
 
     return () => {
-      sock.disconnect();
+      disconnectSocket(code, playerId);
       setSocket(null);
     };
   }, [room?.roomCode, code, playerId]);
