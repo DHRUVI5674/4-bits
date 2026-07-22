@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { io } from "socket.io-client";
+import { getSocket, disconnectSocket } from "@/lib/socket";
 import { getPlayerId } from "@/lib/player-id";
 import { 
   getSessionDetails,
@@ -211,10 +211,7 @@ function InvestigationScreen() {
   useEffect(() => {
     if (!code || !playerId) return;
 
-    const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
-    const sock = io(API_BASE, {
-      auth: { roomCode: code, playerId }
-    });
+    const sock = getSocket(code, playerId);
     socketRef.current = sock;
     setSocket(sock);
 
@@ -393,7 +390,7 @@ function InvestigationScreen() {
 
     return () => {
       sock.off('game:ended');
-      sock.disconnect();
+      disconnectSocket(code, playerId);
       setSocket(null);
       if (voiceManagerRef.current) {
         voiceManagerRef.current.stop();
